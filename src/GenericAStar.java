@@ -47,9 +47,9 @@ public abstract class GenericAStar<T> {
 	// It does not factor in closed and open nodes.
 	protected abstract Set<Node> adjacentNodes(Node sourceNode);
 	
-	// Does one step in the a* algorithmen. Returns true
+	// Does one step in the a* algorithm. Returns true
 	// when more processing is required. Returns false
-	// when the algorithmen is complete.
+	// when the algorithm is complete.
 	protected boolean doStep() {
 		Node sourceNode;
 		Set<Node> adjacentNodes;
