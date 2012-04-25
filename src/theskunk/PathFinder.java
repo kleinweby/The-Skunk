@@ -3,10 +3,11 @@ import java.util.Set;
 
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
+import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 public class PathFinder extends GenericAStar<EnvironmentState> {
 
-	public PathFinder(ApoSkunkmanAILevel level) {
+	public PathFinder(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
 		EnvironmentState startState = new EnvironmentState(null, 0);
 		
 		// Populate this state
@@ -31,7 +32,11 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				startState.setTileState(tileState, x, y);
 			}
 		}
-				
+		
+		startState.setMaxSkunks(player.getMaxSkunkman());
+		startState.setMiliTimeForTile(player.getMSForOneTile());
+		startState.setSkunkWidth(player.getSkunkWidth());
+		
 		this.setStartNode(new Node(startState, null, 0, 0));
 	}
 	
