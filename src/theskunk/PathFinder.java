@@ -6,8 +6,12 @@ import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 public class PathFinder extends GenericAStar<EnvironmentState> {
-
-	public PathFinder(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
+	public enum Type {
+		FindGoal,
+		AvoidBomb
+	}
+	
+	public PathFinder(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player, Type type, int objX, int objY) {
 		EnvironmentState startState = new EnvironmentState(null, 0);
 		
 		// Populate this state
