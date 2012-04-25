@@ -1,3 +1,4 @@
+package theskunk;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -5,6 +6,18 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class GenericAStar<T> {
+	static int nodeIDFromXY(int x, int y) {
+		return (x << 8) | (y & 0xFF);
+	}
+	
+	static int yFromNodeID(int nodeID) {
+		return nodeID & 0xFF;
+	}
+	
+	static int xFromNodeID(int nodeID) {
+		return (nodeID >> 8) & 0xFF;
+	}
+	
 	protected class Node implements Comparable<Node> {
 		// The cost that is needed to get here
 		int usedCost;
@@ -12,11 +25,19 @@ public abstract class GenericAStar<T> {
 		int estimatedRemainingCost;
 		// The Node we came from
 		int prevNodeID;
-		// TODO: State
-		// The id that identifies the node
-		
+		// The id that identifies the node		
 		int nodeID;
+		// The State
 		T nodeState;
+		
+		public Node(T state, Node prevNode, int cost, int estimatedRemainingCost) {
+			this.nodeState = state;
+			if (prevNode != null) {
+				this.prevNodeID = prevNode.nodeID;
+				this.usedCost = prevNode.usedCost + cost;
+			}
+			this.estimatedRemainingCost = estimatedRemainingCost;
+		}
 		
 		public int getEstimatedCost() {
 			return this.usedCost + this.estimatedRemainingCost;
@@ -40,6 +61,15 @@ public abstract class GenericAStar<T> {
 	
 	private HashMap<Integer, Node> closedNodes;
 	private List<Node> openNodes;
+	
+	protected GenericAStar() {
+		this.closedNodes = new HashMap<Integer, Node>();
+		this.openNodes = new LinkedList<Node>();
+	}
+	
+	protected void setStartNode(Node startNode) {
+		this.openNodes.add(startNode);
+	}
 	
 	// This returns the nodes that will be adjacent to the source node.
 	// The returned nodes will be fully populated with the used cost
