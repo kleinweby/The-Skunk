@@ -31,6 +31,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				case ApoSkunkmanAIConstants.LEVEL_GOODIE:
 					tileState = new TileState(TileState.GoodieTileType);
 					break;
+				default:
+					continue;
 				}
 				
 				startState.setTileState(tileState, x, y);
