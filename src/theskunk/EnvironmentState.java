@@ -2,6 +2,7 @@ package theskunk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 class TileAlreadyChanged extends Exception {
@@ -75,8 +76,8 @@ class EnvironmentState {
 		return this._currentTime;
 	}
 	
-	public List<TileState> bombTiles() {
-		List<TileState> bombList = new ArrayList<TileState>();
+	public HashSet<TileState> bombTiles() {
+		HashSet<TileState> bombList = new HashSet<TileState>();
 		
 		// TODO: blabla
 		
@@ -84,8 +85,8 @@ class EnvironmentState {
 	}
 	
 	// Modify state
-	public void setTileState(TileState state, int x, int y) {
-		Integer mangeldTileName = (x << 8) | (y & 0xFF);
+	public void updateTileState(TileState state) {
+		Integer mangeldTileName = (state.x() << 8) | (state.y() & 0xFF);
 		
 		if (!this._changedTileStates.containsKey(mangeldTileName))
 			this._changedTileStates.put(mangeldTileName, state);

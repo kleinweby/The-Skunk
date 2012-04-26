@@ -8,13 +8,23 @@ class TileState {
 	static int StoneTileType = (1 << 4);
 	
 	int _tileType;
+	int _x;
+	int _y;
 	
-	public TileState(int type) {
+	public TileState(int type, int x, int y) {
 		this._tileType= type;
 	}
 	
 	public int tileType() {
 		return this._tileType;
+	}
+	
+	public int x() {
+		return this._x;
+	}
+	
+	public int y() {
+		return this._y;
 	}
 }
 
