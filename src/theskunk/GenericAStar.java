@@ -7,14 +7,21 @@ import java.util.Set;
 
 public abstract class GenericAStar<T> {
 	static int nodeIDFromXY(int x, int y) {
+		assert x <= 0xFF;
+		assert y <= 0xFF;
+			
 		return (x << 8) | (y & 0xFF);
 	}
 	
 	static int yFromNodeID(int nodeID) {
+		assert nodeID <= 0xFFFF;
+		
 		return nodeID & 0xFF;
 	}
 	
 	static int xFromNodeID(int nodeID) {
+		assert nodeID <= 0xFFFF;
+
 		return (nodeID >> 8) & 0xFF;
 	}
 	
@@ -31,6 +38,10 @@ public abstract class GenericAStar<T> {
 		T nodeState;
 		
 		public Node(T state, Node prevNode, int x, int y, int cost, int estimatedRemainingCost) {
+			assert state != null;
+			assert x >= 0 && y >= 0;
+			assert cost >= 0 && estimatedRemainingCost >= 0;
+			
 			this.nodeState = state;
 			this.nodeID = nodeIDFromXY(x, y);
 			if (prevNode != null) {
