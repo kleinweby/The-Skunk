@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public abstract class GenericAStar<T> {
+abstract class GenericAStar<T> {
 	static int nodeIDFromXY(int x, int y) {
 		assert x <= 0xFF;
 		assert y <= 0xFF;
@@ -60,6 +60,21 @@ public abstract class GenericAStar<T> {
 			return this.estimatedRemainingCost == 0;
 		}
 		
+		public int x()
+		{
+			return xFromNodeID(this.nodeID);
+		}
+		
+		public int y()
+		{
+			return yFromNodeID(this.nodeID);
+		}
+		
+		public T nodeState()
+		{
+			return this.nodeState;
+		}
+		
 		@Override
 		public int hashCode() {
 			return this.nodeID;
@@ -68,6 +83,11 @@ public abstract class GenericAStar<T> {
 		@Override
 		public int compareTo(Node otherNode) {
 			return new Integer(this.getEstimatedCost()).compareTo(otherNode.getEstimatedCost());
+		}
+		
+		@Override
+		public String toString() {
+			return String.format("<Node>(x=%d, y=%d)", xFromNodeID(this.nodeID), yFromNodeID(this.nodeID));
 		}
 	};
 	
@@ -103,14 +123,14 @@ public abstract class GenericAStar<T> {
 		sourceNode = this.openNodes.get(0);
 		
 		if (sourceNode.reachedGoal())
-			return true;
+			return false;
 		
 		adjacentNodes = this.adjacentNodes(sourceNode);
 		
 		for (Node node : adjacentNodes) {
 			if (this.closedNodes.containsKey(node.nodeID)) {
 				// This should not happend
-				throw new RuntimeException("Got a new node which was already closed!");
+				//throw new RuntimeException("Got a new node which was already closed!");
 			}
 			else if (this.openNodes.contains(node)) {
 				int oldIndex = this.openNodes.indexOf(node);
@@ -139,11 +159,13 @@ public abstract class GenericAStar<T> {
 			}
 		}
 		
+		// This may be 1 but we have not reached the goal
+		if (this.openNodes.size() == 1)
+			return false;
+		
 		this.closedNodes.put(sourceNode.nodeID, sourceNode);
 		this.openNodes.remove(sourceNode);
 		
-		if (this.openNodes.size() == 0)
-			return false;
 		return true;
 	}
 

@@ -16,8 +16,8 @@ public class EnvironmentState {
 	int _maxSkunks;
 	int _currentTime;
 	
-	static int FIELD_WIDTH = 13;
-	static int FIELD_HEIGHT = 13;
+	public static int FIELD_WIDTH = 15;
+	public static int FIELD_HEIGHT = 15;
 	
 	public EnvironmentState(EnvironmentState parent, int timeAdvance) {
 		this._parentState = parent;
