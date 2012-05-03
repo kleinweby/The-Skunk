@@ -103,12 +103,6 @@ class EnvironmentState {
 	public void setMaxSkunks(int maxSkunks) {
 		this._maxSkunks = maxSkunks;
 	}
-
-	public void advanceTime(int time) {
-		this._currentTime += time;
-		
-		this.simulateEnvironment();
-	}
 	
 	private void simulateEnvironment() {
 		// TODO: bombs and so

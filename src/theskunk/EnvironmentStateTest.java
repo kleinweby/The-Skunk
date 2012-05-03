@@ -159,6 +159,7 @@ public class EnvironmentStateTest {
 		
 		{
 			HashSet<TileState> expected = new HashSet<TileState>();
+			expected.add(bombTile);
 			assertEquals(expected, state.bombTiles());
 		}
 		
