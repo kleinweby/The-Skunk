@@ -43,7 +43,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		startState.setMiliTimeForTile(player.getMSForOneTile());
 		startState.setSkunkWidth(player.getSkunkWidth());
 		
-		this.setStartNode(new Node(startState, null, 0, 0));
+		this.setStartNode(new Node(startState, null, player.getPlayerX(), player.getPlayerY(), 0, 0));
 	}
 	
 	@Override

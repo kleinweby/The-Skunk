@@ -13,6 +13,8 @@ class TileState {
 	
 	public TileState(int type, int x, int y) {
 		this._tileType= type;
+		this._x = x;
+		this._y = y;
 	}
 	
 	public int tileType() {

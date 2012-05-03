@@ -1,9 +1,7 @@
 package theskunk;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 class TileAlreadyChanged extends Exception {
 	private static final long serialVersionUID = 1506153837316228004L;

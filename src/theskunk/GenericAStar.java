@@ -30,8 +30,9 @@ public abstract class GenericAStar<T> {
 		// The State
 		T nodeState;
 		
-		public Node(T state, Node prevNode, int cost, int estimatedRemainingCost) {
+		public Node(T state, Node prevNode, int x, int y, int cost, int estimatedRemainingCost) {
 			this.nodeState = state;
+			this.nodeID = nodeIDFromXY(x, y);
 			if (prevNode != null) {
 				this.prevNodeID = prevNode.nodeID;
 				this.usedCost = prevNode.usedCost + cost;
