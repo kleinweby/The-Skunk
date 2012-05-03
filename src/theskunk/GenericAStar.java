@@ -110,7 +110,7 @@ public abstract class GenericAStar<T> {
 		for (Node node : adjacentNodes) {
 			if (this.closedNodes.containsKey(node.nodeID)) {
 				// This should not happend
-				assert false;
+				throw new RuntimeException("Got a new node which was already closed!");
 			}
 			else if (this.openNodes.contains(node)) {
 				int oldIndex = this.openNodes.indexOf(node);
