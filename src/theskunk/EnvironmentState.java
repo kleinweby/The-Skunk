@@ -33,6 +33,9 @@ class EnvironmentState {
 	
 	// Get state
 	public TileState tileStateAt(int x, int y) {
+		assert x < 0xFF;
+		assert y < 0xFF;
+		
 		Integer mangeldTileName = (x << 8) | (y & 0xFF);
 		
 		if (this._changedTileStates.containsKey(mangeldTileName))
@@ -40,7 +43,7 @@ class EnvironmentState {
 		else if (this._parentState != null)
 			return this._parentState.tileStateAt(x, y);
 		
-		return null;
+		throw new RuntimeException("This environment state does not contain a tile for these coordinates and has no parent!");
 	}
 	
 	public int miliTimeForTile() {
@@ -49,7 +52,7 @@ class EnvironmentState {
 		else if (this._parentState != null)
 			return this._parentState.miliTimeForTile();
 		
-		return 0;
+		throw new RuntimeException("miliTimeForTile accessed but never set!");
 	}
 	
 	public int skunkWidth() {
@@ -58,7 +61,7 @@ class EnvironmentState {
 		else if (this._parentState != null)
 			return this._parentState.skunkWidth();
 		
-		return 0;
+		throw new RuntimeException("skunkWidth accessed but never set!");
 	}
 	
 	public int maxSkunks() {
@@ -67,7 +70,7 @@ class EnvironmentState {
 		else if (this._parentState != null)
 			return this._parentState.maxSkunks();
 		
-		return 0;
+		throw new RuntimeException("maxSkunks accessed but never set!");
 	}
 	
 	public int currentTime() {
@@ -84,6 +87,8 @@ class EnvironmentState {
 	
 	// Modify state
 	public void updateTileState(TileState state) {
+		assert state != null;
+		
 		Integer mangeldTileName = (state.x() << 8) | (state.y() & 0xFF);
 		
 		if (!this._changedTileStates.containsKey(mangeldTileName))
@@ -91,14 +96,20 @@ class EnvironmentState {
 	}
 
 	public void setMiliTimeForTile(int time) {
+		assert time > 0;
+		
 		this._miliTimeForTile = time;
 	}
 
 	public void setSkunkWidth(int width) {
+		assert width > 0;
+		
 		this._skunkWidth = width;
 	}
 
 	public void setMaxSkunks(int maxSkunks) {
+		assert maxSkunks > 0;
+		
 		this._maxSkunks = maxSkunks;
 	}
 	

@@ -12,6 +12,9 @@ class TileState {
 	int _y;
 	
 	public TileState(int type, int x, int y) {
+		assert x <= 0xFF;
+		assert y <= 0xFF;
+		
 		this._tileType= type;
 		this._x = x;
 		this._y = y;
