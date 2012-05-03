@@ -7,7 +7,7 @@ public class BombTileState extends TileState {
 	static int TimeToLive = 300; // TODO: what's the correct time?
 	
 	public BombTileState(int x, int y, int width) {
-		super(TileState.BombTileTYpe, x, y);
+		super(TileState.BombTileType, x, y);
 		this._width = width;
 	}
 

@@ -80,14 +80,21 @@ abstract class GenericAStar<T> {
 			return this.nodeID;
 		}
 
+		// TODO: clear up compare/equals and hashcode confusion
+		
 		@Override
 		public int compareTo(Node otherNode) {
 			return new Integer(this.getEstimatedCost()).compareTo(otherNode.getEstimatedCost());
 		}
 		
 		@Override
+		public boolean equals(Object obj) {
+			return this.hashCode() == obj.hashCode();
+		}
+		
+		@Override
 		public String toString() {
-			return String.format("<Node>(x=%d, y=%d)", xFromNodeID(this.nodeID), yFromNodeID(this.nodeID));
+			return String.format("<Node>(x=%d, y=%d, c=%d, r=%d)", xFromNodeID(this.nodeID), yFromNodeID(this.nodeID), this.usedCost, this.estimatedRemainingCost);
 		}
 	};
 	
@@ -132,6 +139,7 @@ abstract class GenericAStar<T> {
 				// This should not happend
 				//throw new RuntimeException("Got a new node which was already closed!");
 			}
+			// It's already in here, so replace it if needed
 			else if (this.openNodes.contains(node)) {
 				int oldIndex = this.openNodes.indexOf(node);
 				Node oldNode = this.openNodes.get(oldIndex);
@@ -154,8 +162,22 @@ abstract class GenericAStar<T> {
 					}
 				}
 			}
+			// not in here, make a sorted insert
 			else {
-				this.openNodes.add(node);
+				int insertionIndex = -1;
+				
+				for (Node n : this.openNodes) {
+					if (node.compareTo(n) < 0) {
+						insertionIndex = this.openNodes.indexOf(n);
+					}
+				}
+				
+				if (insertionIndex == -1) {
+					this.openNodes.add(node);
+				}
+				else {
+					this.openNodes.add(insertionIndex, node);
+				}
 			}
 		}
 		

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import theskunk.PathMoveStep.Direction;
 import theskunk.environment.EnvironmentState;
 import theskunk.environment.TileState;
 
@@ -18,7 +19,10 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		AvoidBomb
 	}
 	
-	public PathFinder(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player, Type type, int objX, int objY) {
+	private int _objX;
+	private int _objY;
+	
+	public static EnvironmentState environmentFromApo(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
 		EnvironmentState startState = new EnvironmentState(null, 0);
 		
 		// Populate this state
@@ -54,7 +58,14 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		startState.setMiliTimeForTile(player.getMSForOneTile());
 		startState.setSkunkWidth(player.getSkunkWidth());
 		
-		this.setStartNode(new Node(startState, null, player.getPlayerX(), player.getPlayerY(), 0, Integer.MAX_VALUE));
+		return startState;
+	}
+	
+	public PathFinder(EnvironmentState env, Type type, int curX, int curY, int objX, int objY) {
+		this.setStartNode(new Node(env, null, curX, curY, 0, Integer.MAX_VALUE));
+		
+		this._objX = objX;
+		this._objY = objY;
 	}
 	
 	@Override
@@ -62,28 +73,28 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		Set<Node> nodes = new HashSet<Node>();
 		
 		if (sourceNode.x() >= 1) {
-			Node n = nodeFromTo(sourceNode, sourceNode.x() - 1, sourceNode.y());
+			Node n = nodeFromTo(sourceNode, Direction.Left);
 			
 			if (n != null)
 				nodes.add(n);
 		}
 		
 		if (sourceNode.x() + 1 < EnvironmentState.FIELD_WIDTH) {
-			Node n = nodeFromTo(sourceNode, sourceNode.x() + 1, sourceNode.y());
+			Node n = nodeFromTo(sourceNode, Direction.Right);
 			
 			if (n != null)
 				nodes.add(n);
 		}
 		
 		if (sourceNode.y() >= 1) {
-			Node n = nodeFromTo(sourceNode, sourceNode.x(), sourceNode.y() - 1);
+			Node n = nodeFromTo(sourceNode, Direction.Up);
 			
 			if (n != null)
 				nodes.add(n);
 		}
 		
 		if (sourceNode.y() + 1 < EnvironmentState.FIELD_HEIGHT) {
-			Node n = nodeFromTo(sourceNode, sourceNode.x(), sourceNode.y() + 1);
+			Node n = nodeFromTo(sourceNode, Direction.Down);
 			
 			if (n != null)
 				nodes.add(n);
@@ -92,10 +103,25 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		return nodes;
 	}
 	
-	protected Node nodeFromTo(Node sourceNode, int destX, int destY) {
+	protected Node nodeFromTo(Node sourceNode, Direction direction) {
 		assert sourceNode != null;
-		assert destX >= 0 && destX < EnvironmentState.FIELD_WIDTH;
-		assert destY >= 0 && destY < EnvironmentState.FIELD_HEIGHT;
+		int destX = sourceNode.x();
+		int destY = sourceNode.y();
+		
+		switch (direction) {
+		case Down:
+			destY++;
+			break;
+		case Up:
+			destY--;
+			break;
+		case Left:
+			destX--;
+			break;
+		case Right:
+			destX++;
+			break;
+		}
 		
 		EnvironmentState srcEnv = sourceNode.nodeState();
 		TileState currentState = srcEnv.tileStateAt(destX, destY);
@@ -104,27 +130,56 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		if (currentState.tileType() == TileState.FreeTileType) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
 			
+			env.addStep(new PathMoveStep(direction));
+			
 			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile(), 
-					this.estimatedCost(env, sourceNode.x(), sourceNode.y(), destX, destY));
+					this.estimatedCost(env, destX, destY));
+		}
+		else if (currentState.tileType() == TileState.GoodieTileType) {
+			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
+			
+			// TODO: Goodies hiere berücksichtigen. Kosten werden nicht angepasst, da
+			// evtl. ein schlechtes goodie trotzdem ein guten weg produzieren wuerde
+			
+			env.addStep(new PathMoveStep(direction));
+			
+			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile(), 
+					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
+		}
+		else if (currentState.tileType() == TileState.BushTileType) {
+			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
+			
+			env.addStep(new PathMoveStep(direction));
+			
+			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile() * 3, 
+					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
+		}
+		else if (currentState.tileType() == TileState.BombTileType) {
+			// Well better not go here
+			return null;
+		}
+		else if (currentState.tileType() == TileState.StoneTileType) {
+			// We can not go here
+			return null;
 		}
 		
 		return null;
 	}
 	
-	protected int estimatedCost(EnvironmentState env, int srcX, int srcY, int destX, int destY) {
-		return (Math.abs(destY-srcY) + Math.abs(destX-srcX)) * env.miliTimeForTile();
+	protected int estimatedCost(EnvironmentState env, int srcX, int srcY) {
+		return (Math.abs(this._objX-srcX) + Math.abs(this._objY-srcY)) * env.miliTimeForTile();
 	}
 	
 	public Path solution() {
-		List<Point> points = new ArrayList<Point>();
-		
+		List<PathStep> steps = new ArrayList<PathStep>();
+
 		// Do the a-star thing
 		while (this.doStep());
 		
 		for (Node node : this.nodePath()) {
-			points.add(new Point(node.x(), node.y()));
+			steps.addAll(node.nodeState().steps());
 		}
-		
-		return new Path(points);
+
+		return new Path(steps);
 	}
 }

@@ -4,13 +4,13 @@ import java.awt.Point;
 import java.util.List;
 
 public class Path {
-	private List<Point> _points;
+	private List<PathStep> _steps;
 	
-	protected Path(List<Point> points) {
-		this._points = points;
+	protected Path(List<PathStep> steps) {
+		this._steps = steps;
 	}
 	
-	public List<Point> points() {
-		return this._points;
+	public List<PathStep> steps() {
+		return this._steps;
 	}
 }

@@ -2,6 +2,10 @@ package theskunk.environment;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+
+import theskunk.PathStep;;
 
 
 class TileAlreadyChanged extends RuntimeException {
@@ -11,6 +15,7 @@ class TileAlreadyChanged extends RuntimeException {
 public class EnvironmentState {
 	EnvironmentState _parentState;
 	HashMap<Integer, TileState> _changedTileStates;
+	List<PathStep> _steps;
 	int _miliTimeForTile;
 	int _skunkWidth;
 	int _maxSkunks;
@@ -31,6 +36,7 @@ public class EnvironmentState {
 		this._miliTimeForTile = -1;
 		this._skunkWidth = -1;
 		this._maxSkunks = -1;
+		this._steps = new LinkedList<PathStep>();
 		
 		this.simulateEnvironment();
 	}
@@ -136,6 +142,16 @@ public class EnvironmentState {
 		assert maxSkunks > 0;
 		
 		this._maxSkunks = maxSkunks;
+	}
+	
+	// Returns the steps of this env object
+	// Does not go up like the others
+	public List<PathStep> steps() {
+		return this._steps;
+	}
+	
+	public void addStep(PathStep step) {
+		this._steps.add(step);
 	}
 	
 	private void simulateEnvironment() {

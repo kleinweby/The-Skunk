@@ -33,7 +33,7 @@ public class EnvironmentStateTest {
 	public void testTileStateAt() {
 		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
-		TileState tile1 = new TileState(TileState.BombTileTYpe, 10, 5);
+		TileState tile1 = new TileState(TileState.BombTileType, 10, 5);
 		TileState tile2 = new TileState(TileState.BushTileType, 10, 5);
 		
 		parent.updateTileState(tile1);
