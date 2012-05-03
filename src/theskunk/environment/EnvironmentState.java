@@ -1,13 +1,14 @@
-package theskunk;
+package theskunk.environment;
 
 import java.util.HashMap;
 import java.util.HashSet;
+
 
 class TileAlreadyChanged extends RuntimeException {
 	private static final long serialVersionUID = 1506153837316228004L;
 }
 
-class EnvironmentState {
+public class EnvironmentState {
 	EnvironmentState _parentState;
 	HashMap<Integer, TileState> _changedTileStates;
 	int _miliTimeForTile;

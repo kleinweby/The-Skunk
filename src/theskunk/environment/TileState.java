@@ -1,11 +1,11 @@
-package theskunk;
+package theskunk.environment;
 
-class TileState {
-	static int FreeTileType = (1 << 0);
-	static int BushTileType = (1 << 1);
-	static int BombTileTYpe = (1 << 2);
-	static int GoodieTileType = (1 << 3);
-	static int StoneTileType = (1 << 4);
+public class TileState {
+	public static int FreeTileType = (1 << 0);
+	public static int BushTileType = (1 << 1);
+	public static int BombTileTYpe = (1 << 2);
+	public static int GoodieTileType = (1 << 3);
+	public static int StoneTileType = (1 << 4);
 	
 	int _tileType;
 	int _x;

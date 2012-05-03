@@ -1,6 +1,9 @@
 package theskunk;
 import java.util.Set;
 
+import theskunk.environment.EnvironmentState;
+import theskunk.environment.TileState;
+
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;

@@ -1,4 +1,4 @@
-package theskunk;
+package theskunk.environment;
 
 public class BombTileState extends TileState {
 	private int _width;
