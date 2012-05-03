@@ -1,12 +1,29 @@
 package theskunk;
 
 public class BombTileState extends TileState {
-	int timeToLive;
-	int width;
+	private int _width;
+	private int _timeLayed;
 	
-	public BombTileState(int x, int y, int timeToLive, int width) {
+	static int TimeToLive = 300; // TODO: what's the correct time?
+	
+	public BombTileState(int x, int y, int width) {
 		super(TileState.BombTileTYpe, x, y);
-		
+		this._width = width;
 	}
 
+	public int timeLayed() {
+		return this._timeLayed;
+	}
+
+	protected void setTimeLayed(int timeLayed) {
+		this._timeLayed = timeLayed;
+	}
+
+	public int timeExploded() {
+		return this._timeLayed + TimeToLive;
+	}
+	
+	public int width() {
+		return this._width;
+	}
 }

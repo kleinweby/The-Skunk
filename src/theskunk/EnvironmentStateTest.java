@@ -4,9 +4,22 @@ import static org.junit.Assert.*;
 
 import java.util.HashSet;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class EnvironmentStateTest {
+	EnvironmentState cleanState;
+	
+	@Before
+	public void setUp() {
+		this.cleanState = new EnvironmentState(null, 0);
+		
+		for (int x = 0; x < EnvironmentState.FIELD_WIDTH; x++) {
+			for (int y = 0; y < EnvironmentState.FIELD_HEIGHT; y++) {
+				this.cleanState.updateTileState(new TileState(TileState.FreeTileType, x, y));
+			}
+		}
+	}
 	
 	@Test
 	public void testEnvironmentState() {
@@ -17,7 +30,7 @@ public class EnvironmentStateTest {
 
 	@Test
 	public void testTileStateAt() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
+		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
 		TileState tile1 = new TileState(TileState.BombTileTYpe, 10, 5);
 		TileState tile2 = new TileState(TileState.BushTileType, 10, 5);
@@ -35,7 +48,7 @@ public class EnvironmentStateTest {
 	
 	@Test
 	public void testMiliTimeForTile() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
+		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
 		
 		parent.setMiliTimeForTile(10);
@@ -50,7 +63,7 @@ public class EnvironmentStateTest {
 
 	@Test
 	public void testSkunkWidth() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
+		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
 		
 		parent.setSkunkWidth(10);
@@ -66,7 +79,7 @@ public class EnvironmentStateTest {
 
 	@Test
 	public void testMaxSkunks() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
+		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
 		
 		parent.setMaxSkunks(10);
@@ -82,7 +95,7 @@ public class EnvironmentStateTest {
 
 	@Test
 	public void testCurrentTime() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
+		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
 		
 		assertEquals(10, parent.currentTime());
@@ -92,11 +105,11 @@ public class EnvironmentStateTest {
 
 	@Test
 	public void testBombTiles() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
+		EnvironmentState parent = new EnvironmentState(this.cleanState, 10);
 		EnvironmentState state = new EnvironmentState(parent, 20);
-		TileState bombTile1 = new TileState(TileState.BombTileTYpe, 5, 1);
-		TileState bombTile2 = new TileState(TileState.BombTileTYpe, 10, 5);
-		TileState bombTile3 = new TileState(TileState.BombTileTYpe, 5,1 );
+		BombTileState bombTile1 = new BombTileState(5, 1, 5);
+		TileState bombTile2 = new BombTileState(10, 5, 5);
+		TileState bombTile3 = new BombTileState(5, 1, 5);
 		
 		assertEquals(0, parent.bombTiles().size());
 		assertEquals(0, state.bombTiles().size());
@@ -105,6 +118,7 @@ public class EnvironmentStateTest {
 		{
 			HashSet<TileState> expected = new HashSet<TileState>();
 			expected.add(bombTile1);
+			parent.tileStateAt(5, 1);
 			assertEquals(expected, parent.bombTiles());
 			assertEquals(expected, state.bombTiles());
 		}
@@ -131,36 +145,55 @@ public class EnvironmentStateTest {
 	}
 
 	@Test
-	public void testAdvanceTime() {
-		EnvironmentState parent = new EnvironmentState(null, 10);
-		EnvironmentState state = new EnvironmentState(parent, 20);
-		TileState bushes[] = {
-				new TileState(TileState.BushTileType, 2, 2),
-				new TileState(TileState.BushTileType, 3, 2),
-				new TileState(TileState.BushTileType, 4, 2),
-				new TileState(TileState.BushTileType, 4, 3),
-				new TileState(TileState.BushTileType, 4, 4),
-				new TileState(TileState.BushTileType, 3, 4),
-				new TileState(TileState.BushTileType, 2, 4),
-				new TileState(TileState.BushTileType, 2, 3)
-		};
-		BombTileState bombTile = new BombTileState(3, 3, 50, 5);
+	public void testSimulation() {
+		EnvironmentState state = new EnvironmentState(this.cleanState, 20);
+		EnvironmentState afterBombState;
+		TileState tiles[][] = new TileState[EnvironmentState.FIELD_WIDTH][EnvironmentState.FIELD_HEIGHT];
+		BombTileState bombTile = new BombTileState(3, 3, 5);
 		
-		for (TileState s : bushes)
-			parent.updateTileState(s);
-		
-		state.updateTileState(bombTile);
-		
-		for (TileState s : bushes) {
-			assertEquals(s, state.tileStateAt(s.x(), s.y()));
+		for (int x = 0; x < EnvironmentState.FIELD_WIDTH; x++) {
+			for (int y = 0; y < EnvironmentState.FIELD_HEIGHT; y++) {
+				if (x == bombTile.x() && y == bombTile.y()) {
+					tiles[x][y] = bombTile;
+				}
+				else {
+					tiles[x][y] = new TileState(TileState.BushTileType, x, y);
+				}
+				state.updateTileState(tiles[x][y]);
+			}
 		}
 		
+		// Ensure the current state
+		for (int x = 0; x < EnvironmentState.FIELD_WIDTH; x++) {
+			for (int y = 0; y < EnvironmentState.FIELD_HEIGHT; y++) {
+				assertSame(tiles[x][y], state.tileStateAt(x, y));
+			}
+		}
+		
+		// Check that the bomb is present
 		{
 			HashSet<TileState> expected = new HashSet<TileState>();
 			expected.add(bombTile);
 			assertEquals(expected, state.bombTiles());
 		}
 		
+		afterBombState = new EnvironmentState(state, BombTileState.TimeToLive);
+		
+		// Ensure the bombed state with respect to the bombed
+		// tiles
+		for (int x = 0; x < EnvironmentState.FIELD_WIDTH; x++) {
+			for (int y = 0; y < EnvironmentState.FIELD_HEIGHT; y++) {
+				if ((x == 3 && y == 3) || (x == 2 && y == 3) || (x == 4 && y == 3)
+						|| (x == 3 && y == 4) || (x == 3 && y == 2)) {
+					TileState tile = afterBombState.tileStateAt(x, y);
+					
+					assertEquals(tile._tileType, TileState.FreeTileType);
+				}
+				else {
+					assertSame(tiles[x][y], afterBombState.tileStateAt(x, y));
+				}
+			}
+		}
 	}
 
 }
