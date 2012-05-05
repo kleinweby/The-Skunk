@@ -1,6 +1,9 @@
 package theskunk;
 import java.awt.Point;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +29,9 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	private Type _type;
 	private Point _startPoint;
 	private boolean _layBombs;
+	
+	private int _stepCount;
+	private Time _timeConsumed;
 	
 	public static EnvironmentState environmentFromApo(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
 		EnvironmentState startState = new EnvironmentState(null, 0);
@@ -192,6 +198,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				
 				// Solve the escape.
 				Path path = finder.solution();
+				this._stepCount += finder._stepCount;
 				
 				// the new env is this
 				env = path.finalState();
@@ -221,6 +228,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				finder._layBombs = false;
 				
 				path = finder.solution();
+				this._stepCount += finder._stepCount;
 				
 				env = path.finalState();
 				assert path.finalPlayerPosition().x == sourceNode.x() &&
@@ -284,12 +292,25 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	
 	public Path solution() {
 		// Do the a-star thing
-		while (this.doStep());
+		this._stepCount = 0;
+		long startTime = System.currentTimeMillis();
+		
+		while (this.doStep()) this._stepCount++;
+		
+		this._timeConsumed = new Time(System.currentTimeMillis() - startTime);
 		
 		List<Node> nodePath = this.nodePath();
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
 
 		return new Path(lastNode.nodeState().steps(), null, lastNode.nodeState, this._startPoint, new Point(lastNode.x(), lastNode.y()));
+	}
+	
+	public int usedSteps() {
+		return this._stepCount;
+	}
+	
+	public Time usedTime() {
+		return this._timeConsumed;
 	}
 }

@@ -60,8 +60,10 @@ public class TheSkunk extends ApoSkunkmanAI {
 				}
 			}
 
-			if (p != null)
+			if (p != null) {
 				this.path = p.solution();
+				player.addMessage(String.format("Took %d steps and %d miliseconds to solve path", p.usedSteps(), p.usedTime().getTime()));
+			}
 			this.stepIndex = 0;
 		}
 				
