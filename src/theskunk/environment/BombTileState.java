@@ -4,7 +4,7 @@ public class BombTileState extends TileState {
 	private int _width;
 	private int _timeLayed;
 	
-	static int TimeToLive = 300; // TODO: what's the correct time?
+	static int TimeToLive = 2700; // TODO: what's the correct time?
 	
 	public BombTileState(int x, int y, int width) {
 		super(TileState.BombTileType, x, y);

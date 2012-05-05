@@ -14,7 +14,7 @@ class TileAlreadyChanged extends RuntimeException {
 
 public class EnvironmentState {
 	EnvironmentState _parentState;
-	HashMap<Integer, TileState> _changedTileStates;
+	HashMap<Integer, TileState> _tiles;
 	List<PathStep> _steps;
 	int _miliTimeForTile;
 	int _skunkWidth;
@@ -27,10 +27,13 @@ public class EnvironmentState {
 	public EnvironmentState(EnvironmentState parent, int timeAdvance) {
 		this._parentState = parent;
 		
-		this._changedTileStates = new HashMap<Integer, TileState>();
 		
-		if (this._parentState != null)
+		if (this._parentState != null) {
 			this._currentTime = this._parentState.currentTime();
+			this._tiles = (HashMap<Integer, TileState>) this._parentState._tiles.clone();
+		}
+		else
+			this._tiles = new HashMap<Integer, TileState>();
 		
 		this._currentTime += timeAdvance;
 		this._miliTimeForTile = -1;
@@ -48,10 +51,8 @@ public class EnvironmentState {
 		
 		Integer mangeldTileName = (x << 8) | (y & 0xFF);
 		
-		if (this._changedTileStates.containsKey(mangeldTileName))
-			return this._changedTileStates.get(mangeldTileName);
-		else if (this._parentState != null)
-			return this._parentState.tileStateAt(x, y);
+		if (this._tiles.containsKey(mangeldTileName))
+			return this._tiles.get(mangeldTileName);
 		
 		throw new RuntimeException("This environment state does not contain a tile for these coordinates and has no parent!");
 	}
@@ -112,7 +113,7 @@ public class EnvironmentState {
 		
 		Integer mangeldTileName = (state.x() << 8) | (state.y() & 0xFF);
 		
-		if (!this._changedTileStates.containsKey(mangeldTileName)) {
+//		if (!this._changedTileStates.containsKey(mangeldTileName)) {
 			// When a bomb is layed set its layed time
 			// to know when it will explode
 			if (state instanceof BombTileState) {
@@ -120,10 +121,10 @@ public class EnvironmentState {
 				bomb.setTimeLayed(this.currentTime());
 			}
 			
-			this._changedTileStates.put(mangeldTileName, state);
-		}
-		else
-			throw new TileAlreadyChanged();
+			this._tiles.put(mangeldTileName, state);
+//		}
+//		else
+//			throw new TileAlreadyChanged();
 	}
 
 	public void setMiliTimeForTile(int time) {
@@ -145,9 +146,16 @@ public class EnvironmentState {
 	}
 	
 	// Returns the steps of this env object
-	// Does not go up like the others
+	// Does now go up like the others
 	public List<PathStep> steps() {
-		return this._steps;
+		List<PathStep> steps = new LinkedList<PathStep>();
+		
+		if (this._parentState != null)
+			steps.addAll(this._parentState.steps());
+		
+		steps.addAll(this._steps);
+		
+		return steps;
 	}
 	
 	public void addStep(PathStep step) {
@@ -171,7 +179,7 @@ public class EnvironmentState {
 				for (int x = bomb.x() + 1; x < FIELD_WIDTH && x <= bomb.x() + bomb.width(); x++) {
 					TileState state = this.tileStateAt(x, bomb.y());
 					
-					if (state.tileType() != TileState.FreeTileType) {
+					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, x, bomb.y()));
 						// Only bomb one tile away
 						break;
@@ -182,7 +190,7 @@ public class EnvironmentState {
 				for (int x = bomb.x() - 1; x > 0 && x >= bomb.x() - bomb.width(); x--) {
 					TileState state = this.tileStateAt(x, bomb.y());
 					
-					if (state.tileType() != TileState.FreeTileType) {
+					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, x, bomb.y()));
 						// Only bomb one tile away
 						break;
@@ -193,7 +201,7 @@ public class EnvironmentState {
 				for (int y = bomb.y() + 1; y < FIELD_HEIGHT && y <= bomb.y() + bomb.width(); y++) {
 					TileState state = this.tileStateAt(bomb.x(), y);
 					
-					if (state.tileType() != TileState.FreeTileType) {
+					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, bomb.x(), y));
 						// Only bomb one tile away
 						break;
@@ -204,7 +212,7 @@ public class EnvironmentState {
 				for (int y = bomb.y() - 1; y > 0 && y >= bomb.y() - bomb.width(); y--) {
 					TileState state = this.tileStateAt(bomb.x(), y);
 					
-					if (state.tileType() != TileState.FreeTileType) {
+					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, bomb.x(), y));
 						// Only bomb one tile away
 						break;
