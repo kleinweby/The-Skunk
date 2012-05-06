@@ -82,7 +82,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 					// Current situation does not hold the path anymore
 					this.resetState();
 					// Start new
-					player.addMessage("Restart thinking...");
+					player.addMessage(a + " failed. Restart thinking...");
 					this.think(level, player);
 					return;
 				}
@@ -109,6 +109,14 @@ public class TheSkunk extends ApoSkunkmanAI {
 				this.stepIndex++;
 			}
 			else if (step instanceof PathLayBombStep) {
+				if (!player.canPlayerLayDownSkunkman()) {
+					// Current situation does not hold the path anymore
+					this.resetState();
+					// Start new
+					player.addMessage("Planned laying down skunk. Not able to. Restart thinking...");
+					this.think(level, player);
+				}
+				
 				player.laySkunkman();
 				
 				this.stepIndex++;

@@ -15,4 +15,8 @@ public class PathSpeedAssertion extends PathAssertion {
 		return player.getMSForOneTile() == this._expectedSpeed;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("<SpeedAssertion> (expected=%d)", this._expectedSpeed);
+	}
 }

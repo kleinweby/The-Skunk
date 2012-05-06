@@ -20,4 +20,8 @@ public class PathBushAssertion extends PathAssertion {
 		return (level.getLevelAsByte()[this._location.y][this._location.x] == ApoSkunkmanAIConstants.LEVEL_BUSH) == this._shouldBeBush;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("<PushAssertion> (location=%s, shouldBeBush=%b)", this._location.toString(), this._shouldBeBush);
+	}
 }

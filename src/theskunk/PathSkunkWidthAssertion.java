@@ -15,4 +15,8 @@ public class PathSkunkWidthAssertion extends PathAssertion {
 		return player.getSkunkWidth() == this._expectedWidth;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("<SkunkWidthAssertion> (expected=%d)", this._expectedWidth);
+	}
 }
