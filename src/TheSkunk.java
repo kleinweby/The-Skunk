@@ -47,7 +47,6 @@ public class TheSkunk extends ApoSkunkmanAI {
 			PathFinder p = null;
 			if (level.getType() == ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X) {
 				p = new PathFinder(PathFinder.environmentFromApo(level, player), PathFinder.Type.FindGoal, 
-						new Point(player.getPlayerX(), player.getPlayerY()),
 						level.getGoalXPoint().x, level.getGoalXPoint().y);
 			}
 			else {
@@ -55,7 +54,6 @@ public class TheSkunk extends ApoSkunkmanAI {
 				
 				if (enemies.length > 0) {
 					p = new PathFinder(PathFinder.environmentFromApo(level, player), PathFinder.Type.FindGoal, 
-						new Point(player.getPlayerX(), player.getPlayerY()),
 						(int)enemies[0].getX(), (int)enemies[0].getY());
 				}
 			}

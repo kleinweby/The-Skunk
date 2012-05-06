@@ -65,23 +65,24 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		startState.setMaxSkunks(player.getMaxSkunkman());
 		startState.setMiliTimeForTile(player.getMSForOneTile());
 		startState.setSkunkWidth(player.getSkunkWidth());
+		startState.setPlayerPosition(new Point(player.getPlayerX(), player.getPlayerY()));
 		
 		return startState;
 	}
 	
-	public PathFinder(EnvironmentState env, Type type, Point playerPosition, int objX, int objY) {		
+	public PathFinder(EnvironmentState env, Type type, int objX, int objY) {		
 		this._objX = objX;
 		this._objY = objY;
 		this._type = type;
-		this._startPoint = playerPosition;
+		this._startPoint = env.playerPosition();
 		
 		this._layBombs = true;
 		
 		if (this._type == Type.AvoidBomb)
 			this._layBombs = false;
 		
-		this.setStartNode(new Node(env, null, playerPosition.x, playerPosition.y, 0, 
-				this.estimatedCost(env, playerPosition.x, playerPosition.y)));
+		this.setStartNode(new Node(env, null, this._startPoint.x, this._startPoint.y, 0, 
+				this.estimatedCost(env, this._startPoint.x, this._startPoint.y)));
 	}
 	
 	@Override
@@ -170,15 +171,16 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		else if (currentState.tileType() == TileState.BushTileType && this._layBombs) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
 			
-			// We need to destroy the bush, so add the laybomb step and lay it in our env
-			env.updateTileState(new BombTileState(sourceNode.x(), sourceNode.y(), env.skunkWidth()));
 			{
 				PathLayBombStep step = new PathLayBombStep();
 				// We dont need to blow something up that is not there
 				step.addAssertion(new PathBushAssertion(new Point(destX, destY), true));
+				// We have to make sure we are where we're thinking we are ;)
+				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
 				// We have to make sure our escape is right (timing/distance)
 				step.addAssertion(new PathSkunkWidthAssertion(env.skunkWidth()));
 				step.addAssertion(new PathSpeedAssertion(env.miliTimeForTile()));
+				// Will insert a bomb tile
 				env.setStep(step);
 			}
 			
@@ -189,8 +191,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				// makes the wait time to short?
 				//env = new EnvironmentState(env, srcEnv.miliTimeForTile());
 				
-				PathFinder finder = new PathFinder(env, Type.AvoidBomb, new Point(sourceNode.x(), 
-						sourceNode.y()), sourceNode.x(), sourceNode.y());
+				PathFinder finder = new PathFinder(env, Type.AvoidBomb, sourceNode.x(), sourceNode.y());
 				
 				// Solve the escape.
 				Path path = finder.solution();
@@ -223,7 +224,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				assert !(env.tileStateAt(sourceNode.x(), sourceNode.y()) instanceof BombTileState);
 				
 				// Ok bomb is now exploded, get back to that position
-				finder = new PathFinder(env, Type.FindGoal, path.finalPlayerPosition(), sourceNode.x(), sourceNode.y());
+				finder = new PathFinder(env, Type.FindGoal, sourceNode.x(), sourceNode.y());
 				// There is an empty path, where no bombs
 				// are needed, only look for those
 				finder._layBombs = false;

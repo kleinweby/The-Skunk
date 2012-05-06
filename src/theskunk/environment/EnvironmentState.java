@@ -1,10 +1,13 @@
 package theskunk.environment;
 
+import java.awt.Point;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import theskunk.PathLayBombStep;
+import theskunk.PathMoveStep;
 import theskunk.PathStep;;
 
 
@@ -21,6 +24,7 @@ public class EnvironmentState {
 	int _skunkWidth;
 	int _maxSkunks;
 	int _currentTime;
+	Point _playerPosition;
 	
 	public static int FIELD_WIDTH = 15;
 	public static int FIELD_HEIGHT = 15;
@@ -157,7 +161,43 @@ public class EnvironmentState {
 		if (this._step != null)
 			throw new RuntimeException("This env already has an step set!");
 		
+		if (step instanceof PathLayBombStep) {
+			// Set the tile to be a bomb
+			this.updateTileState(new BombTileState(this.playerPosition().x, this.playerPosition().y, this.skunkWidth()));
+		}
+		else if (step instanceof PathMoveStep) {
+			PathMoveStep move = (PathMoveStep)step;
+			
+			switch (move.direction()) {
+			case Up:
+				this._playerPosition = new Point(this.playerPosition().x, this.playerPosition().y - 1);
+				break;
+			case Down:
+				this._playerPosition = new Point(this.playerPosition().x, this.playerPosition().y + 1);
+				break;
+			case Left:
+				this._playerPosition = new Point(this.playerPosition().x - 1, this.playerPosition().y);
+				break;
+			case Right:
+				this._playerPosition = new Point(this.playerPosition().x + 1, this.playerPosition().y);
+				break;
+			}
+		}
+		
 		this._step = step;
+	}
+	
+	public Point playerPosition() {
+		if (this._playerPosition != null)
+			return this._playerPosition;
+		else if (this._parentState != null)
+			return this._parentState.playerPosition();
+		
+		throw new RuntimeException("Player position unknown!?");
+	}
+	
+	public void setPlayerPosition(Point position) {
+		this._playerPosition = position;
 	}
 	
 	private void simulateEnvironment() {
