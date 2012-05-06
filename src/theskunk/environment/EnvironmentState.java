@@ -14,7 +14,7 @@ class TileAlreadyChanged extends RuntimeException {
 
 public class EnvironmentState {
 	EnvironmentState _parentState;
-	HashMap<Integer, TileState> _tiles;
+	TileState _tiles[][];
 	HashSet<BombTileState> _bombTiles;
 	List<PathStep> _steps;
 	int _miliTimeForTile;
@@ -31,11 +31,15 @@ public class EnvironmentState {
 		
 		if (this._parentState != null) {
 			this._currentTime = this._parentState.currentTime();
-			this._tiles = (HashMap<Integer, TileState>) this._parentState._tiles.clone();
+			this._tiles = new TileState[FIELD_WIDTH][];
+			
+			for (int x = 0; x < FIELD_WIDTH; x++)
+				this._tiles[x] = this._parentState._tiles[x].clone();
+			
 			this._bombTiles = (HashSet<BombTileState>) this._parentState._bombTiles.clone();
 		}
 		else {
-			this._tiles = new HashMap<Integer, TileState>();
+			this._tiles = new TileState[FIELD_WIDTH][FIELD_HEIGHT];
 			this._bombTiles = new HashSet<BombTileState>();
 		}
 		
@@ -53,12 +57,14 @@ public class EnvironmentState {
 		assert x >= 0 && x < FIELD_WIDTH;
 		assert y >= 0 && x < FIELD_HEIGHT;
 		
-		Integer mangeldTileName = (x << 8) | (y & 0xFF);
+		TileState state;
 		
-		if (this._tiles.containsKey(mangeldTileName))
-			return this._tiles.get(mangeldTileName);
+		state = this._tiles[x][y];
 		
-		throw new RuntimeException("This environment state does not contain a tile for these coordinates and has no parent!");
+		if (state == null)
+			throw new RuntimeException("This environment state does not contain a tile for these coordinates and has no parent!");
+		
+		return state;
 	}
 	
 	public int miliTimeForTile() {
@@ -99,12 +105,9 @@ public class EnvironmentState {
 	// Modify state
 	public void updateTileState(TileState state) {
 		assert state != null;
-		TileState prevState = null;
+		TileState prevState;
 		
-		Integer mangeldTileName = (state.x() << 8) | (state.y() & 0xFF);
-		
-		if (this._tiles.containsKey(mangeldTileName))
-			prevState = this._tiles.get(mangeldTileName);
+		prevState = this._tiles[state.x()][state.y()];
 		
 		if (prevState instanceof BombTileState) {
 			this._bombTiles.remove(prevState);
@@ -116,7 +119,7 @@ public class EnvironmentState {
 			this._bombTiles.add(bomb);
 		}
 			
-		this._tiles.put(mangeldTileName, state);
+		this._tiles[state.x()][state.y()] = state;
 	}
 
 	public void setMiliTimeForTile(int time) {
