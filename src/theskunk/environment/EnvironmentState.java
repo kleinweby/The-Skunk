@@ -16,7 +16,7 @@ public class EnvironmentState {
 	EnvironmentState _parentState;
 	TileState _tiles[][];
 	HashSet<BombTileState> _bombTiles;
-	List<PathStep> _steps;
+	PathStep _step;
 	int _miliTimeForTile;
 	int _skunkWidth;
 	int _maxSkunks;
@@ -47,7 +47,6 @@ public class EnvironmentState {
 		this._miliTimeForTile = -1;
 		this._skunkWidth = -1;
 		this._maxSkunks = -1;
-		this._steps = new LinkedList<PathStep>();
 		
 		this.simulateEnvironment();
 	}
@@ -148,13 +147,17 @@ public class EnvironmentState {
 		if (this._parentState != null)
 			steps.addAll(this._parentState.steps());
 		
-		steps.addAll(this._steps);
+		if (this._step != null)
+			steps.add(this._step);
 		
 		return steps;
 	}
 	
-	public void addStep(PathStep step) {
-		this._steps.add(step);
+	public void setStep(PathStep step) {
+		if (this._step != null)
+			throw new RuntimeException("This env already has an step set!");
+		
+		this._step = step;
 	}
 	
 	private void simulateEnvironment() {

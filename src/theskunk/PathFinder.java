@@ -131,6 +131,10 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		assert sourceNode != null;
 		int destX = sourceNode.x();
 		int destY = sourceNode.y();
+		// TODO: The timing here is somwhat wrong
+		// we're advancing the environment for the time the steps takes
+		// and do then the step. Should be the other way around, but
+		// quick try made the timing even worse xD
 		
 		switch (direction) {
 		case Down:
@@ -154,7 +158,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		if (currentState.tileType() == TileState.FreeTileType) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
 			
-			env.addStep(new PathMoveStep(direction));
+			env.setStep(new PathMoveStep(direction));
 			
 			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile(), 
 					this.estimatedCost(env, destX, destY));
@@ -165,7 +169,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			// TODO: Goodies hiere berücksichtigen. Kosten werden nicht angepasst, da
 			// evtl. ein schlechtes goodie trotzdem ein guten weg produzieren wuerde
 			
-			env.addStep(new PathMoveStep(direction));
+			env.setStep(new PathMoveStep(direction));
 			
 			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
@@ -183,7 +187,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				// We have to make sure our escape is right (timing/distance)
 				step.addAssertion(new PathSkunkWidthAssertion(env.skunkWidth()));
 				step.addAssertion(new PathSpeedAssertion(env.miliTimeForTile()));
-				env.addStep(step);
+				env.setStep(step);
 			}
 			
 			// Find escape route
@@ -213,7 +217,12 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				}
 				
 				if (remainingBombTime > 0) {
-					env.addStep(new PathWaitStep(remainingBombTime));
+					// TODO: because of the wrong timing mentioned above
+					// the last env of an path already contains an step
+					// so we need an env shadow copy here, with
+					// no time advance
+					env = new EnvironmentState(env, 0);
+					env.setStep(new PathWaitStep(remainingBombTime));
 					// New env here to work with
 					env = new EnvironmentState(env, remainingBombTime);
 				}
@@ -236,7 +245,12 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			}
 			
 			// Finally step onto the tile
-			env.addStep(new PathMoveStep(direction));
+			// TODO: because of the wrong timing mentioned above
+			// the last env of an path already contains an step
+			// so we need an env shadow copy here, with
+			// no time advance
+			env = new EnvironmentState(env, 0);
+			env.setStep(new PathMoveStep(direction));
 			
 			return new Node(env, sourceNode, destX, destY, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
