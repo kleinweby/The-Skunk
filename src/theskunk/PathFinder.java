@@ -31,7 +31,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	private Time _timeConsumed;
 	
 	public static EnvironmentState environmentFromApo(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
-		EnvironmentState startState = new EnvironmentState(null, 0);
+		EnvironmentState startState = new EnvironmentState(null, level.getStartTime() - level.getTime());
 		
 		// Populate this state
 		byte byteLevel[][] = level.getLevelAsByte();
