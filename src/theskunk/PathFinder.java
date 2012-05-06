@@ -223,8 +223,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				// There should not be a bomb now
 				assert !(env.tileStateAt(sourceNode.x(), sourceNode.y()) instanceof BombTileState);
 				
-				// Ok bomb is now exploded, get back to that position
-				finder = new PathFinder(env, Type.FindGoal, sourceNode.x(), sourceNode.y());
+				// Ok bomb is now exploded, get back to final destination
+				finder = new PathFinder(env, Type.FindGoal, destX, destY);
 				// There is an empty path, where no bombs
 				// are needed, only look for those
 				finder._layBombs = false;
@@ -233,17 +233,9 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				this._stepCount += finder._stepCount;
 				
 				env = path.finalState();
-				assert path.finalPlayerPosition().x == sourceNode.x() &&
-						path.finalPlayerPosition().y == sourceNode.y();
+				assert path.finalPlayerPosition().x == destX &&
+						path.finalPlayerPosition().y == destY;
 			}
-			
-			// Finally step onto the tile
-			// TODO: because of the wrong timing mentioned above
-			// the last env of an path already contains an step
-			// so we need an env shadow copy here, with
-			// no time advance
-			env = new EnvironmentState(env, 0);
-			env.setStep(new PathMoveStep(direction));
 			
 			return new Node(env, sourceNode, destX, destY, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
