@@ -15,6 +15,7 @@ class TileAlreadyChanged extends RuntimeException {
 public class EnvironmentState {
 	EnvironmentState _parentState;
 	HashMap<Integer, TileState> _tiles;
+	HashSet<BombTileState> _bombTiles;
 	List<PathStep> _steps;
 	int _miliTimeForTile;
 	int _skunkWidth;
@@ -31,9 +32,12 @@ public class EnvironmentState {
 		if (this._parentState != null) {
 			this._currentTime = this._parentState.currentTime();
 			this._tiles = (HashMap<Integer, TileState>) this._parentState._tiles.clone();
+			this._bombTiles = (HashSet<BombTileState>) this._parentState._bombTiles.clone();
 		}
-		else
+		else {
 			this._tiles = new HashMap<Integer, TileState>();
+			this._bombTiles = new HashSet<BombTileState>();
+		}
 		
 		this._currentTime += timeAdvance;
 		this._miliTimeForTile = -1;
@@ -89,42 +93,30 @@ public class EnvironmentState {
 	}
 	
 	public HashSet<BombTileState> bombTiles() {
-		HashSet<BombTileState> bombList = new HashSet<BombTileState>();
-		
-		// TODO: make this efficient
-		for (int x = 0; x < FIELD_WIDTH; x++) {
-			for (int y = 0; y < FIELD_WIDTH; y++) {
-				if (x == 5 && y == 1)
-					this.tileStateAt(x, y);
-				
-				TileState state = this.tileStateAt(x, y);
-				
-				if (state instanceof BombTileState)
-					bombList.add((BombTileState)state);
-			}
-		}
-		
-		return bombList;
+		return this._bombTiles;
 	}
 	
 	// Modify state
 	public void updateTileState(TileState state) {
 		assert state != null;
+		TileState prevState = null;
 		
 		Integer mangeldTileName = (state.x() << 8) | (state.y() & 0xFF);
 		
-//		if (!this._changedTileStates.containsKey(mangeldTileName)) {
-			// When a bomb is layed set its layed time
-			// to know when it will explode
-			if (state instanceof BombTileState) {
-				BombTileState bomb = (BombTileState)state;
-				bomb.setTimeLayed(this.currentTime());
-			}
+		if (this._tiles.containsKey(mangeldTileName))
+			prevState = this._tiles.get(mangeldTileName);
+		
+		if (prevState instanceof BombTileState) {
+			this._bombTiles.remove(prevState);
+		}
+		
+		if (state instanceof BombTileState) {
+			BombTileState bomb = (BombTileState)state;
+			bomb.setTimeLayed(this.currentTime());
+			this._bombTiles.add(bomb);
+		}
 			
-			this._tiles.put(mangeldTileName, state);
-//		}
-//		else
-//			throw new TileAlreadyChanged();
+		this._tiles.put(mangeldTileName, state);
 	}
 
 	public void setMiliTimeForTile(int time) {
