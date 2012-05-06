@@ -149,8 +149,11 @@ public class TheSkunk extends ApoSkunkmanAI {
 		for (PathStep step : path.steps()) {
 			Color color;
 			
-			if (x <= currentStep) {
+			if (x < currentStep) {
 				color = new Color(0, 255, 0);
+			}
+			else if (x == currentStep) {
+				color = new Color(255, 255, 0);
 			}
 			else {
 				color = new Color(255,0,0);
