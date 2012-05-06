@@ -47,11 +47,6 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_BUSH:
 					tileState = new TileState(TileState.BushTileType, x, y);
-					
-					ApoSkunkmanAILevelGoodie goodie = level.getGoodie(y, x);
-					if (goodie != null) {
-						System.out.println("goodie under bush!");
-					}
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_GOODIE:
 					tileState = new TileState(TileState.GoodieTileType, x, y);
