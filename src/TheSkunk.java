@@ -126,7 +126,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 			}
 		}
 		
-		this.visualizePath(this.path, player);
+		this.visualizePath(this.path,this.stepIndex, player);
 	}
 	
 	private void resetState() {
@@ -135,11 +135,21 @@ public class TheSkunk extends ApoSkunkmanAI {
 		this.remainingWaitTime = 0;
 	}
 	
-	private void visualizePath(Path path, ApoSkunkmanAIPlayer player)
+	private void visualizePath(Path path, int currentStep, ApoSkunkmanAIPlayer player)
 	{
 		Point lastPoint = path.startPlayerPosition();
+		int x = 0;
 		
 		for (PathStep step : path.steps()) {
+			Color color;
+			
+			if (x <= currentStep) {
+				color = new Color(0, 255, 0);
+			}
+			else {
+				color = new Color(255,0,0);
+			}
+			
 			if (step instanceof PathMoveStep) {
 				PathMoveStep move = (PathMoveStep)step;
 				Point nextPoint = null;
@@ -159,15 +169,17 @@ public class TheSkunk extends ApoSkunkmanAI {
 					break;
 				}
 				
-				player.drawLine(lastPoint.x + 0.5f, lastPoint.y + 0.5f, nextPoint.x + 0.5f, nextPoint.y + 0.5f, 300);
+				player.drawLine(lastPoint.x + 0.5f, lastPoint.y + 0.5f, nextPoint.x + 0.5f, nextPoint.y + 0.5f, 300, color);
 				lastPoint = nextPoint;
 			}
 			else if (step instanceof PathLayBombStep) {
-				player.drawCircle(lastPoint.x + 0.5f, lastPoint.y + 0.5f, 0.15f, true, 300);
+				player.drawCircle(lastPoint.x + 0.5f, lastPoint.y + 0.5f, 0.15f, true, 300, color);
 			}
 			else if (step instanceof PathWaitStep) {
-				player.drawRect(lastPoint.x + 0.5f - 0.15f, lastPoint.y + 0.5f - 0.15f, 0.3f, 0.3f, false, 300);
+				player.drawRect(lastPoint.x + 0.5f - 0.15f, lastPoint.y + 0.5f - 0.15f, 0.3f, 0.3f, false, 300, color);
 			}
+			
+			x++;
 		}
 	}
 }

@@ -184,6 +184,9 @@ public class EnvironmentState {
 						// Only bomb one tile away
 						break;
 					}
+					else if (state.tileType() == TileState.StoneTileType) {
+						break;
+					}
 				}
 				
 				// walk x downwards
@@ -193,6 +196,9 @@ public class EnvironmentState {
 					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, x, bomb.y()));
 						// Only bomb one tile away
+						break;
+					}
+					else if (state.tileType() == TileState.StoneTileType) {
 						break;
 					}
 				}
@@ -206,6 +212,9 @@ public class EnvironmentState {
 						// Only bomb one tile away
 						break;
 					}
+					else if (state.tileType() == TileState.StoneTileType) {
+						break;
+					}
 				}
 				
 				// walk y downwards
@@ -215,6 +224,9 @@ public class EnvironmentState {
 					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, bomb.x(), y));
 						// Only bomb one tile away
+						break;
+					}
+					else if (state.tileType() == TileState.StoneTileType) {
 						break;
 					}
 				}
