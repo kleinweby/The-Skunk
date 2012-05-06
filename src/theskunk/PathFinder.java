@@ -225,8 +225,9 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				
 				// Ok bomb is now exploded, get back to final destination
 				finder = new PathFinder(env, Type.FindGoal, destX, destY);
-				// There is an empty path, where no bombs
-				// are needed, only look for those
+				// There is an free path, which is guranteed
+				// to be least expensive. So save the computing
+				// time and don't simulate bombs
 				finder._layBombs = false;
 				
 				path = finder.solution();
