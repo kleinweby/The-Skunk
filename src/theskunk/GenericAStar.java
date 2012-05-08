@@ -31,7 +31,7 @@ abstract class GenericAStar<T> {
 		// The estimated remaining cost
 		int estimatedRemainingCost;
 		// The Node we came from
-		int prevNodeID;
+		Node prevNode;
 		// The id that identifies the node		
 		int nodeID;
 		// The State
@@ -45,7 +45,7 @@ abstract class GenericAStar<T> {
 			this.nodeState = state;
 			this.nodeID = nodeIDFromXY(x, y);
 			if (prevNode != null) {
-				this.prevNodeID = prevNode.nodeID;
+				this.prevNode = prevNode;
 				this.usedCost = prevNode.usedCost + cost;
 			}
 			this.estimatedRemainingCost = estimatedRemainingCost;
@@ -73,6 +73,11 @@ abstract class GenericAStar<T> {
 		public T nodeState()
 		{
 			return this.nodeState;
+		}
+		
+		public Node prevNode()
+		{
+			return this.prevNode;
 		}
 		
 		@Override
@@ -198,7 +203,7 @@ abstract class GenericAStar<T> {
 		
 		while (currNode != null) {
 			list.add(currNode);
-			currNode = this.closedNodes.get(currNode.prevNodeID);
+			currNode = currNode.prevNode();
 		}
 		
 		Collections.reverse(list);

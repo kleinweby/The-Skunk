@@ -1,7 +1,7 @@
 package theskunk.environment;
 
 import java.awt.Point;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -148,11 +148,16 @@ public class EnvironmentState {
 	public List<PathStep> steps() {
 		List<PathStep> steps = new LinkedList<PathStep>();
 		
-		if (this._parentState != null)
-			steps.addAll(this._parentState.steps());
+		EnvironmentState env = this;
 		
-		if (this._step != null)
-			steps.add(this._step);
+		while (env != null) {
+			if (env._step != null)
+				steps.add(env._step);
+			
+			env = env._parentState;
+		}
+		
+		Collections.reverse(steps);
 		
 		return steps;
 	}

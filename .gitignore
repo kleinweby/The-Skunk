@@ -1,3 +1,5 @@
 bin/
 .DS_Store
 skunkman.properties
+/nbproject/private/
+/build/

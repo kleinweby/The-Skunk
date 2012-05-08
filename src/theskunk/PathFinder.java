@@ -28,7 +28,9 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	private boolean _layBombs;
 	
 	private int _stepCount;
-	private Time _timeConsumed;
+	private int _stepCountSubroutines;
+	private long _timeConsumed;
+	private long _timeConsumedInSubFinders;
 	
 	public static EnvironmentState environmentFromApo(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
 		EnvironmentState startState = new EnvironmentState(null, level.getStartTime() - level.getTime());
@@ -144,6 +146,13 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			break;
 		}
 		
+		if (sourceNode.prevNode() != null && 
+				sourceNode.prevNode().x() == destX &&
+				sourceNode.prevNode().y() == destY) {
+			// Already been there
+			return null;
+		}
+		
 		EnvironmentState srcEnv = sourceNode.nodeState();
 		TileState currentState = srcEnv.tileStateAt(destX, destY);
 		
@@ -159,8 +168,11 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		else if (currentState.tileType() == TileState.GoodieTileType) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
 			
-			// TODO: Goodies hiere berücksichtigen. Kosten werden nicht angepasst, da
-			// evtl. ein schlechtes goodie trotzdem ein guten weg produzieren wuerde
+			// Goodies will not be handled separatly in the sense of cost, because
+			// it is the path finders role to do so (A bad goodie may be good
+			// for the solution)
+			
+			// TODO: change env to reflect goodie
 			
 			env.setStep(new PathMoveStep(direction));
 			
@@ -195,7 +207,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				
 				// Solve the escape.
 				Path path = finder.solution();
-				this._stepCount += finder._stepCount;
+				this._stepCountSubroutines += finder._stepCount;
+				this._timeConsumedInSubFinders += finder._timeConsumed;
 				
 				// the new env is this
 				env = path.finalState();
@@ -231,8 +244,9 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				finder._layBombs = false;
 				
 				path = finder.solution();
-				this._stepCount += finder._stepCount;
-				
+				this._stepCountSubroutines += finder._stepCount;
+				this._timeConsumedInSubFinders += finder._timeConsumed;
+
 				env = path.finalState();
 				assert path.finalPlayerPosition().x == destX &&
 						path.finalPlayerPosition().y == destY;
@@ -294,10 +308,10 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		// Do the a-star thing
 		this._stepCount = 0;
 		long startTime = System.currentTimeMillis();
-		
+
 		while (this.doStep()) this._stepCount++;
 		
-		this._timeConsumed = new Time(System.currentTimeMillis() - startTime);
+		this._timeConsumed = System.currentTimeMillis() - startTime;
 		
 		List<Node> nodePath = this.nodePath();
 		
@@ -310,7 +324,15 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		return this._stepCount;
 	}
 	
+	public int usedStepsInSubroutines() {
+		return this._stepCountSubroutines;
+	}
+	
 	public Time usedTime() {
-		return this._timeConsumed;
+		return new Time(this._timeConsumed - this._timeConsumedInSubFinders);
+	}
+	
+	public Time usedTimeInSubroutines() {
+		return new Time(this._timeConsumedInSubFinders);
 	}
 }
