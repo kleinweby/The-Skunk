@@ -41,6 +41,10 @@ public class EnvironmentState {
 				this._tiles[x] = this._parentState._tiles[x].clone();
 			
 			this._bombTiles = (HashSet<BombTileState>) this._parentState._bombTiles.clone();
+			
+			this._miliTimeForTile = this._parentState._miliTimeForTile;
+			this._skunkWidth = this._parentState._skunkWidth;
+			this._maxSkunks = this._parentState._maxSkunks;
 		}
 		else {
 			this._tiles = new TileState[FIELD_WIDTH][FIELD_HEIGHT];
@@ -48,10 +52,7 @@ public class EnvironmentState {
 		}
 		
 		this._currentTime += timeAdvance;
-		this._miliTimeForTile = -1;
-		this._skunkWidth = -1;
-		this._maxSkunks = -1;
-		
+
 		this.simulateEnvironment();
 	}
 	
@@ -71,30 +72,15 @@ public class EnvironmentState {
 	}
 	
 	public int miliTimeForTile() {
-		if (this._miliTimeForTile > 0)
-			return this._miliTimeForTile;
-		else if (this._parentState != null)
-			return this._parentState.miliTimeForTile();
-		
-		throw new RuntimeException("miliTimeForTile accessed but never set!");
+		return this._miliTimeForTile;
 	}
 	
 	public int skunkWidth() {
-		if (this._skunkWidth > 0)
-			return this._skunkWidth;
-		else if (this._parentState != null)
-			return this._parentState.skunkWidth();
-		
-		throw new RuntimeException("skunkWidth accessed but never set!");
+		return this._skunkWidth;
 	}
 	
 	public int maxSkunks() {
-		if (this._maxSkunks > 0)
-			return this._maxSkunks;
-		else if (this._parentState != null)
-			return this._parentState.maxSkunks();
-		
-		throw new RuntimeException("maxSkunks accessed but never set!");
+		return this._maxSkunks;
 	}
 	
 	public int currentTime() {
@@ -146,18 +132,16 @@ public class EnvironmentState {
 	// Returns the steps of this env object
 	// Does now go up like the others
 	public List<PathStep> steps() {
-		List<PathStep> steps = new LinkedList<PathStep>();
+		LinkedList<PathStep> steps = new LinkedList<PathStep>();
 		
 		EnvironmentState env = this;
 		
 		while (env != null) {
 			if (env._step != null)
-				steps.add(env._step);
+				steps.addFirst(env._step);
 			
 			env = env._parentState;
 		}
-		
-		Collections.reverse(steps);
 		
 		return steps;
 	}
