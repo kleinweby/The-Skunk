@@ -35,12 +35,8 @@ public class EnvironmentState {
 		
 		if (this._parentState != null) {
 			this._currentTime = this._parentState.currentTime();
-			this._tiles = new TileState[FIELD_WIDTH][];
-			
-			for (int x = 0; x < FIELD_WIDTH; x++)
-				this._tiles[x] = this._parentState._tiles[x].clone();
-			
-			this._bombTiles = (HashSet<BombTileState>) this._parentState._bombTiles.clone();
+			this._tiles = this._parentState._tiles;
+			this._bombTiles = this._parentState._bombTiles;
 			
 			this._miliTimeForTile = this._parentState._miliTimeForTile;
 			this._skunkWidth = this._parentState._skunkWidth;
@@ -97,10 +93,21 @@ public class EnvironmentState {
 	public void updateTileState(TileState state) {
 		assert state != null;
 		TileState prevState;
+		int x = state.x();
+		int y = state.y();
 		
-		prevState = this._tiles[state.x()][state.y()];
+		prevState = this._tiles[x][y];
 		
-		if (prevState instanceof BombTileState) {
+		if (prevState instanceof BombTileState || state instanceof BombTileState) {
+			// When we got the bomb tiles from the parent
+			// state and it is the same object
+			// we need to copy it here, in order not to change
+			// the parent
+			if (this._parentState != null && this._parentState._bombTiles == this._bombTiles)
+				this._bombTiles = new HashSet<BombTileState>(this._bombTiles);
+		}
+		
+		if (prevState instanceof BombTileState) {			
 			this._bombTiles.remove(prevState);
 		}
 		
@@ -109,8 +116,18 @@ public class EnvironmentState {
 			bomb.setTimeLayed(this.currentTime());
 			this._bombTiles.add(bomb);
 		}
-			
-		this._tiles[state.x()][state.y()] = state;
+		
+		// Inhered parend state and did not copy it yet
+		if (this._parentState != null && this._tiles == this._parentState._tiles) {
+			this._tiles = this._tiles.clone();
+		}
+		
+		// Inhered parent state and did not copy column
+		if (this._parentState != null && this._tiles[x] == this._parentState._tiles[x]) {
+			this._tiles[x] = this._tiles[x].clone();
+		}
+		
+		this._tiles[x][y] = state;
 	}
 
 	public void setMiliTimeForTile(int time) {

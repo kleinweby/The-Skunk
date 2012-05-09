@@ -316,7 +316,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		List<Node> nodePath = this.nodePath();
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
-
+		
 		return new Path(lastNode.nodeState().steps(), null, lastNode.nodeState, this._startPoint, new Point(lastNode.x(), lastNode.y()));
 	}
 	
