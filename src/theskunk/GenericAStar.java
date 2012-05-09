@@ -14,18 +14,6 @@ abstract class GenericAStar<T> {
 		return (x << 8) | (y & 0xFF);
 	}
 	
-	static int yFromNodeID(int nodeID) {
-		assert nodeID <= 0xFFFF;
-		
-		return nodeID & 0xFF;
-	}
-	
-	static int xFromNodeID(int nodeID) {
-		assert nodeID <= 0xFFFF;
-
-		return (nodeID >> 8) & 0xFF;
-	}
-	
 	protected class Node implements Comparable<Node> {
 		// The cost that is needed to get here
 		int usedCost;
@@ -103,7 +91,7 @@ abstract class GenericAStar<T> {
 		
 		@Override
 		public String toString() {
-			return String.format("<Node>(x=%d, y=%d, c=%d, r=%d)", xFromNodeID(this.nodeID), yFromNodeID(this.nodeID), this.usedCost, this.estimatedRemainingCost);
+			return String.format("<Node>(coord=%s, c=%d, r=%d)", this._coordinate.toString(), this.usedCost, this.estimatedRemainingCost);
 		}
 	};
 	
