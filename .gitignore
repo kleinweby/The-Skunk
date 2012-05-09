@@ -3,3 +3,4 @@ bin/
 skunkman.properties
 /nbproject/private/
 /build/
+/dist/
