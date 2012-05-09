@@ -1,4 +1,5 @@
 package theskunk;
+import java.awt.Point;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -37,13 +38,13 @@ abstract class GenericAStar<T> {
 		// The State
 		T nodeState;
 		
-		public Node(T state, Node prevNode, int x, int y, int cost, int estimatedRemainingCost) {
+		public Node(T state, Node prevNode, Point coordinate, int cost, int estimatedRemainingCost) {
 			assert state != null;
-			assert x >= 0 && y >= 0;
+			assert coordinate.x >= 0 && coordinate.y >= 0;
 			assert cost >= 0 && estimatedRemainingCost >= 0;
 			
 			this.nodeState = state;
-			this.nodeID = nodeIDFromXY(x, y);
+			this.nodeID = nodeIDFromXY(coordinate.x, coordinate.y);
 			if (prevNode != null) {
 				this.prevNode = prevNode;
 				this.usedCost = prevNode.usedCost + cost;
@@ -60,14 +61,8 @@ abstract class GenericAStar<T> {
 			return this.estimatedRemainingCost == 0;
 		}
 		
-		public int x()
-		{
-			return xFromNodeID(this.nodeID);
-		}
-		
-		public int y()
-		{
-			return yFromNodeID(this.nodeID);
+		public Point coordinate() {
+			return new Point(xFromNodeID(this.nodeID), yFromNodeID(this.nodeID));
 		}
 		
 		public T nodeState()

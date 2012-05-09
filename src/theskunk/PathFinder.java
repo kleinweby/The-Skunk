@@ -84,36 +84,37 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		if (this._type == Type.AvoidBomb)
 			this._layBombs = false;
 		
-		this.setStartNode(new Node(env, null, this._startPoint.x, this._startPoint.y, 0, 
-				this.estimatedCost(env, this._startPoint.x, this._startPoint.y)));
+		this.setStartNode(new Node(env, null, this._startPoint, 0, 
+				this.estimatedCost(env, this._startPoint)));
 	}
 	
 	@Override
 	protected Set<Node> adjacentNodes(Node sourceNode) {
 		Set<Node> nodes = new HashSet<Node>();
+		Point p = sourceNode.coordinate();
 		
-		if (sourceNode.x() >= 1) {
+		if (p.x >= 1) {
 			Node n = nodeFromTo(sourceNode, Direction.Left);
 			
 			if (n != null)
 				nodes.add(n);
 		}
 		
-		if (sourceNode.x() + 1 < EnvironmentState.FIELD_WIDTH) {
+		if (p.x + 1 < EnvironmentState.FIELD_WIDTH) {
 			Node n = nodeFromTo(sourceNode, Direction.Right);
 			
 			if (n != null)
 				nodes.add(n);
 		}
 		
-		if (sourceNode.y() >= 1) {
+		if (p.y >= 1) {
 			Node n = nodeFromTo(sourceNode, Direction.Up);
 			
 			if (n != null)
 				nodes.add(n);
 		}
 		
-		if (sourceNode.y() + 1 < EnvironmentState.FIELD_HEIGHT) {
+		if (p.y + 1 < EnvironmentState.FIELD_HEIGHT) {
 			Node n = nodeFromTo(sourceNode, Direction.Down);
 			
 			if (n != null)
@@ -125,8 +126,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	
 	protected Node nodeFromTo(Node sourceNode, Direction direction) {
 		assert sourceNode != null;
-		int destX = sourceNode.x();
-		int destY = sourceNode.y();
+		Point dest = new Point(sourceNode.coordinate());
 		// TODO: The timing here is somwhat wrong
 		// we're advancing the environment for the time the steps takes
 		// and do then the step. Should be the other way around, but
@@ -134,28 +134,27 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		
 		switch (direction) {
 		case Down:
-			destY++;
+			dest.y++;
 			break;
 		case Up:
-			destY--;
+			dest.y--;
 			break;
 		case Left:
-			destX--;
+			dest.x--;
 			break;
 		case Right:
-			destX++;
+			dest.x++;
 			break;
 		}
 		
 		if (sourceNode.prevNode() != null && 
-				sourceNode.prevNode().x() == destX &&
-				sourceNode.prevNode().y() == destY) {
+				sourceNode.coordinate().equals(dest)) {
 			// Already been there
 			return null;
 		}
 		
 		EnvironmentState srcEnv = sourceNode.nodeState();
-		TileState currentState = srcEnv.tileStateAt(destX, destY);
+		TileState currentState = srcEnv.tileStateAt(dest.x, dest.y);
 		
 		// Perfect =) we can simply go there
 		if (currentState.tileType() == TileState.FreeTileType) {
@@ -163,8 +162,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			
 			env.setStep(new PathMoveStep(direction));
 			
-			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile(), 
-					this.estimatedCost(env, destX, destY));
+			return new Node(env, sourceNode, dest, srcEnv.miliTimeForTile(), 
+					this.estimatedCost(env, dest));
 		}
 		else if (currentState.tileType() == TileState.GoodieTileType) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
@@ -177,8 +176,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			
 			env.setStep(new PathMoveStep(direction));
 			
-			return new Node(env, sourceNode, destX, destY, srcEnv.miliTimeForTile(), 
-					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
+			return new Node(env, sourceNode, dest, srcEnv.miliTimeForTile(), 
+					this.estimatedCost(env, sourceNode.coordinate()));
 		}
 		// Do not blow up bushes when we're currently running away from an bomb
 		else if (currentState.tileType() == TileState.BushTileType && this._layBombs) {
@@ -187,7 +186,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			{
 				PathLayBombStep step = new PathLayBombStep();
 				// We dont need to blow something up that is not there
-				step.addAssertion(new PathBushAssertion(new Point(destX, destY), true));
+				step.addAssertion(new PathBushAssertion(dest, true));
 				// We have to make sure we are where we're thinking we are ;)
 				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
 				// We have to make sure our escape is right (timing/distance)
@@ -204,7 +203,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				// makes the wait time to short?
 				//env = new EnvironmentState(env, srcEnv.miliTimeForTile());
 				
-				PathFinder finder = new PathFinder(env, Type.AvoidBomb, sourceNode.x(), sourceNode.y());
+				PathFinder finder = new PathFinder(env, Type.AvoidBomb, sourceNode.coordinate().x, sourceNode.coordinate().y);
 				
 				// Solve the escape.
 				Path path = finder.solution();
@@ -216,7 +215,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				
 				// Now we have to wait 'till the bomb is exploded
 				int remainingBombTime = 0;
-				TileState tile = env.tileStateAt(sourceNode.x(), sourceNode.y());
+				TileState tile = env.tileStateAt(sourceNode.coordinate().x, sourceNode.coordinate().y);
 				
 				if (tile instanceof BombTileState) {
 					BombTileState bomb = (BombTileState)tile;
@@ -235,10 +234,10 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				}
 				
 				// There should not be a bomb now
-				assert !(env.tileStateAt(sourceNode.x(), sourceNode.y()) instanceof BombTileState);
+				assert !(env.tileStateAt(sourceNode.coordinate().x, sourceNode.coordinate().y) instanceof BombTileState);
 				
 				// Ok bomb is now exploded, get back to final destination
-				finder = new PathFinder(env, Type.FindGoal, destX, destY);
+				finder = new PathFinder(env, Type.FindGoal, dest.x, dest.y);
 				// There is an free path, which is guranteed
 				// to be least expensive. So save the computing
 				// time and don't simulate bombs
@@ -249,12 +248,11 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				this._timeConsumedInSubFinders += finder._timeConsumed;
 
 				env = path.finalState();
-				assert path.finalPlayerPosition().x == destX &&
-						path.finalPlayerPosition().y == destY;
+				assert path.finalPlayerPosition().equals(dest);
 			}
 			
-			return new Node(env, sourceNode, destX, destY, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
-					this.estimatedCost(env, sourceNode.x(), sourceNode.y()));
+			return new Node(env, sourceNode, dest, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
+					this.estimatedCost(env, sourceNode.coordinate()));
 		}
 		else if (currentState.tileType() == TileState.BombTileType) {
 			// Well better not go here
@@ -268,30 +266,30 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		return null;
 	}
 	
-	protected int estimatedCost(EnvironmentState env, int srcX, int srcY) {
+	protected int estimatedCost(EnvironmentState env, Point p) {
 		if (this._type == Type.FindGoal)
-			return (Math.abs(this._objX-srcX) + Math.abs(this._objY-srcY)) * env.miliTimeForTile();
+			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
 		else if (this._type == Type.AvoidBomb) {
 			TileState tile = env.tileStateAt(this._objX, this._objY);
 			
 			if (tile instanceof BombTileState) {
 				BombTileState bomb = (BombTileState)tile;
-				if (srcY == this._objY) {
-					if (Math.abs(srcX - this._objX) > bomb.width()) {
+				if (p.y == this._objY) {
+					if (Math.abs(p.x - this._objX) > bomb.width()) {
 						// we're safe
 						return 0;
 					}
 					else {
-						return (Math.abs(srcX - this._objX) + 1) * env.miliTimeForTile();
+						return (Math.abs(p.x - this._objX) + 1) * env.miliTimeForTile();
 					}
 				}
-				else if (srcX == this._objX) {
-					if (Math.abs(srcY - this._objY) > bomb.width()) {
+				else if (p.x == this._objX) {
+					if (Math.abs(p.y - this._objY) > bomb.width()) {
 						// we're safe
 						return 0;
 					}
 					else {
-						return (Math.abs(srcY - this._objY) + 1) * env.miliTimeForTile();
+						return (Math.abs(p.y - this._objY) + 1) * env.miliTimeForTile();
 					}
 				}
 				else
@@ -318,7 +316,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
 		
-		return new Path(lastNode.nodeState().steps(), null, lastNode.nodeState, this._startPoint, new Point(lastNode.x(), lastNode.y()));
+		return new Path(lastNode.nodeState().steps(), null, lastNode.nodeState, this._startPoint, lastNode.coordinate());
 	}
 	
 	public int usedSteps() {
