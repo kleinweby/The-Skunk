@@ -321,7 +321,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	}
 	
 	public int usedSteps() {
-		return this._stepCount;
+		return this._stepCount + this._stepCountSubroutines;
 	}
 	
 	public int usedStepsInSubroutines() {
@@ -329,7 +329,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	}
 	
 	public Time usedTime() {
-		return new Time(this._timeConsumed - this._timeConsumedInSubFinders);
+		return new Time(this._timeConsumed);
 	}
 	
 	public Time usedTimeInSubroutines() {
