@@ -86,7 +86,14 @@ abstract class GenericAStar<T> {
 		
 		@Override
 		public int compareTo(Node otherNode) {
-			return new Integer(this.getEstimatedCost()).compareTo(otherNode.getEstimatedCost());
+			int a = this.getEstimatedCost();
+			int b = otherNode.getEstimatedCost();
+			
+			if (a < b)
+				return -1;
+			else if (a > b)
+				return 1;
+			return 0;
 		}
 		
 		@Override
