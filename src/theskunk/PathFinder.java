@@ -41,20 +41,21 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		for (int x = 0; x < byteLevel.length; x++) {
 			for (int y = 0; y < byteLevel[x].length; y++) {
 				TileState tileState = null;
+				Point p = new Point(x,y);
 				
 				switch (byteLevel[y][x]) {
 				case ApoSkunkmanAIConstants.LEVEL_FREE:
 				case ApoSkunkmanAIConstants.LEVEL_SKUNKMAN:
-					tileState = new TileState(TileState.FreeTileType, x, y);
+					tileState = new TileState(TileState.FreeTileType, p);
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_BUSH:
-					tileState = new TileState(TileState.BushTileType, x, y);
+					tileState = new TileState(TileState.BushTileType, p);
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_GOODIE:
-					tileState = new TileState(TileState.GoodieTileType, x, y);
+					tileState = new TileState(TileState.GoodieTileType, p);
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_STONE:
-					tileState = new TileState(TileState.StoneTileType, x, y);
+					tileState = new TileState(TileState.StoneTileType, p);
 					break;
 				default:
 					continue;

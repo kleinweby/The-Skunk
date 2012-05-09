@@ -93,8 +93,8 @@ public class EnvironmentState {
 	public void updateTileState(TileState state) {
 		assert state != null;
 		TileState prevState;
-		int x = state.x();
-		int y = state.y();
+		int x = state.coordinate().x;
+		int y = state.coordinate().y;
 		
 		prevState = this._tiles[x][y];
 		
@@ -171,7 +171,7 @@ public class EnvironmentState {
 		
 		if (step instanceof PathLayBombStep) {
 			// Set the tile to be a bomb
-			this.updateTileState(new BombTileState(this.playerPosition().x, this.playerPosition().y, this.skunkWidth()));
+			this.updateTileState(new BombTileState(this.playerPosition(), this.skunkWidth()));
 		}
 		else if (step instanceof PathMoveStep) {
 			PathMoveStep move = (PathMoveStep)step;
@@ -215,13 +215,15 @@ public class EnvironmentState {
 		for (BombTileState bomb : bombs) {
 			// This bomb exploded =/
 			if (bomb.timeExploded() <= this.currentTime()) {
+				Point p = bomb.coordinate();
+				
 				// Now let this thing explode
 				// First walk x upwards
-				for (int x = bomb.x() + 1; x < FIELD_WIDTH && x <= bomb.x() + bomb.width(); x++) {
-					TileState state = this.tileStateAt(x, bomb.y());
+				for (int x = p.x + 1; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
+					TileState state = this.tileStateAt(x, p.y);
 					
 					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, x, bomb.y()));
+						this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
 						// Only bomb one tile away
 						break;
 					}
@@ -231,11 +233,11 @@ public class EnvironmentState {
 				}
 				
 				// walk x downwards
-				for (int x = bomb.x() - 1; x > 0 && x >= bomb.x() - bomb.width(); x--) {
-					TileState state = this.tileStateAt(x, bomb.y());
+				for (int x = p.x - 1; x > 0 && x >= p.x - bomb.width(); x--) {
+					TileState state = this.tileStateAt(x, p.y);
 					
 					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, x, bomb.y()));
+						this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
 						// Only bomb one tile away
 						break;
 					}
@@ -245,11 +247,11 @@ public class EnvironmentState {
 				}
 				
 				// walk y upwards
-				for (int y = bomb.y() + 1; y < FIELD_HEIGHT && y <= bomb.y() + bomb.width(); y++) {
-					TileState state = this.tileStateAt(bomb.x(), y);
+				for (int y = p.y + 1; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
+					TileState state = this.tileStateAt(p.x, y);
 					
 					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, bomb.x(), y));
+						this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
 						// Only bomb one tile away
 						break;
 					}
@@ -259,11 +261,11 @@ public class EnvironmentState {
 				}
 				
 				// walk y downwards
-				for (int y = bomb.y() - 1; y > 0 && y >= bomb.y() - bomb.width(); y--) {
-					TileState state = this.tileStateAt(bomb.x(), y);
+				for (int y = p.y - 1; y > 0 && y >= p.y - bomb.width(); y--) {
+					TileState state = this.tileStateAt(p.x, y);
 					
 					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, bomb.x(), y));
+						this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
 						// Only bomb one tile away
 						break;
 					}
@@ -273,7 +275,7 @@ public class EnvironmentState {
 				}
 				
 				// Remove the bomb
-				this.updateTileState(new TileState(TileState.FreeTileType, bomb.x(), bomb.y()));
+				this.updateTileState(new TileState(TileState.FreeTileType, p));
 			}
 		}
 	}
