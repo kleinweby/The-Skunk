@@ -128,7 +128,7 @@ abstract class GenericAStar<T> {
 		Node sourceNode;
 		Set<Node> adjacentNodes;
 		
-		if (this.openNodes.size() == 0)
+		if (this.openNodes.isEmpty())
 			return false;
 		
 		// We get the element with the least estimated cost
