@@ -45,10 +45,12 @@ public class EnvironmentState {
 			this._miliTimeForTile = this._parentState._miliTimeForTile;
 			this._skunkWidth = this._parentState._skunkWidth;
 			this._maxSkunks = this._parentState._maxSkunks;
+			this._playerPosition = new Point(this._parentState._playerPosition);
 		}
 		else {
 			this._tiles = new TileState[FIELD_WIDTH][FIELD_HEIGHT];
 			this._bombTiles = new HashSet<BombTileState>();
+			this._playerPosition = new Point();
 		}
 		
 		this._currentTime += timeAdvance;
@@ -177,12 +179,7 @@ public class EnvironmentState {
 	}
 	
 	public Point playerPosition() {
-		if (this._playerPosition != null)
-			return this._playerPosition;
-		else if (this._parentState != null)
-			return this._parentState.playerPosition();
-		
-		throw new RuntimeException("Player position unknown!?");
+		return this._playerPosition;
 	}
 	
 	public void setPlayerPosition(Point position) {
