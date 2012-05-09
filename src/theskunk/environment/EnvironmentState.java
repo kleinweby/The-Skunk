@@ -178,16 +178,16 @@ public class EnvironmentState {
 			
 			switch (move.direction()) {
 			case Up:
-				this._playerPosition = new Point(this.playerPosition().x, this.playerPosition().y - 1);
+				this._playerPosition.y -= 1;
 				break;
 			case Down:
-				this._playerPosition = new Point(this.playerPosition().x, this.playerPosition().y + 1);
+				this._playerPosition.y += 1;
 				break;
 			case Left:
-				this._playerPosition = new Point(this.playerPosition().x - 1, this.playerPosition().y);
+				this._playerPosition.x -= 1;
 				break;
 			case Right:
-				this._playerPosition = new Point(this.playerPosition().x + 1, this.playerPosition().y);
+				this._playerPosition.x += 1;
 				break;
 			}
 		}
