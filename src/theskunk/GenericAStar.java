@@ -35,6 +35,7 @@ abstract class GenericAStar<T> {
 		Node prevNode;
 		// The id that identifies the node		
 		int nodeID;
+		Point _coordinate;
 		// The State
 		T nodeState;
 		
@@ -45,6 +46,7 @@ abstract class GenericAStar<T> {
 			
 			this.nodeState = state;
 			this.nodeID = nodeIDFromXY(coordinate.x, coordinate.y);
+			this._coordinate = coordinate;
 			if (prevNode != null) {
 				this.prevNode = prevNode;
 				this.usedCost = prevNode.usedCost + cost;
@@ -62,7 +64,7 @@ abstract class GenericAStar<T> {
 		}
 		
 		public Point coordinate() {
-			return new Point(xFromNodeID(this.nodeID), yFromNodeID(this.nodeID));
+			return this._coordinate;
 		}
 		
 		public T nodeState()
