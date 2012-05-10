@@ -3,6 +3,9 @@ package theskunk;
 import java.awt.Point;
 import java.util.List;
 
+import apoSkunkman.ai.ApoSkunkmanAILevel;
+import apoSkunkman.ai.ApoSkunkmanAIPlayer;
+
 import theskunk.environment.EnvironmentState;
 
 public class Path {
@@ -38,5 +41,16 @@ public class Path {
 	
 	public List<PathAssertion> assertions() {
 		return this._assertions;
+	}
+
+	public boolean assertAgainstApo(ApoSkunkmanAILevel level,
+			ApoSkunkmanAIPlayer player) {
+		for (PathAssertion a : this._assertions) {
+			if (!a.evaulate(level, player)) {
+				player.addMessage(a + "failed.");
+				return false;
+			}
+		}
+		return true;
 	}
 }

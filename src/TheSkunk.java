@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.awt.Point;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import apoSkunkman.ai.ApoSkunkmanAI;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
@@ -17,12 +19,15 @@ import theskunk.PathMoveStep;
 import theskunk.PathMoveStep.Direction;
 import theskunk.PathStep;
 import theskunk.PathWaitStep;
+import theskunk.objectives.FindGoalObjective;
+import theskunk.objectives.Objective;
 
 public class TheSkunk extends ApoSkunkmanAI {
-
-	private Path path;
+	
 	private int stepIndex;
 	private int remainingWaitTime;
+	private PriorityQueue<Objective> _objectives;
+	private Objective _currentObjective;
 	
 	@Override
 	public String getPlayerName() {
@@ -39,37 +44,34 @@ public class TheSkunk extends ApoSkunkmanAI {
 		super.load(path);
 		
 		this.resetState();
+		
+		this._objectives = new PriorityQueue<Objective>();
+		
+		this._objectives.add(new FindGoalObjective());
 	}
 	
 	@Override
 	public void think(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
-		if (this.path == null) {
-			PathFinder p = null;
-			if (level.getType() == ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X) {
-				p = new PathFinder(PathFinder.environmentFromApo(level, player), PathFinder.Type.FindGoal, 
-						level.getGoalXPoint().x, level.getGoalXPoint().y);
-			}
-			else {
-				ApoSkunkmanAIEnemy enemies[] = level.getEnemies();
-				
-				if (enemies.length > 0) {
-					p = new PathFinder(PathFinder.environmentFromApo(level, player), PathFinder.Type.FindGoal, 
-						(int)enemies[0].getX(), (int)enemies[0].getY());
+		for (Objective o : this._objectives) {
+			// Evaluate the objective
+			o.evaluate(level, player);
+			
+			// If the goal is satisfied we need to
+			// work down it's path.
+			if (!o.isSatisfied()) {
+				if (o != this._currentObjective) {
+					this.resetState();
+					this._currentObjective = o;
+					break;
 				}
 			}
-
-			if (p != null) {
-				this.path = p.solution();
-				player.addMessage(String.format("Took %d(%d) steps and %d(%d) miliseconds to solve path", p.usedSteps(), p.usedStepsInSubroutines(), p.usedTime().getTime(), p.usedTimeInSubroutines().getTime()));
-			}
-			this.stepIndex = 0;
 		}
 		
 		{
-			List<PathStep> steps = path.steps();
+			List<PathStep> steps = this._currentObjective.path().steps();
 			
 			if (this.stepIndex >= steps.size()) {
-				this.path = null;
+				this._currentObjective = null;
 				return;
 			}
 			
@@ -78,7 +80,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 			for (PathAssertion a : step.assertions()) {
 				if (!a.evaulate(level, player)) {
 					// Current situation does not hold the path anymore
-					this.resetState();
+					this.pathFailed();
 					// Start new
 					player.addMessage(a + " failed. Restart thinking...");
 					this.think(level, player);
@@ -109,7 +111,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 			else if (step instanceof PathLayBombStep) {
 				if (!player.canPlayerLayDownSkunkman()) {
 					// Current situation does not hold the path anymore
-					this.resetState();
+					this.pathFailed();
 					// Start new
 					player.addMessage("Planned laying down skunk. Not able to. Restart thinking...");
 					this.think(level, player);
@@ -132,13 +134,18 @@ public class TheSkunk extends ApoSkunkmanAI {
 			}
 		}
 		
-		this.visualizePath(this.path,this.stepIndex, player);
+		this.visualizePath(this._currentObjective.path(),this.stepIndex, player);
 	}
 	
 	private void resetState() {
-		this.path = null;
+		this._currentObjective = null;
 		this.stepIndex = 0;
 		this.remainingWaitTime = 0;
+	}
+	
+	private void pathFailed() {
+		this._currentObjective.pathFailed();
+		this.resetState();
 	}
 	
 	private void visualizePath(Path path, int currentStep, ApoSkunkmanAIPlayer player)

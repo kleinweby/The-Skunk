@@ -1,6 +1,7 @@
 package theskunk;
 import java.awt.Point;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -316,7 +317,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
 		
-		return new Path(lastNode.nodeState().steps(), null, lastNode.nodeState, this._startPoint, lastNode.coordinate());
+		return new Path(lastNode.nodeState().steps(), new ArrayList<PathAssertion>(), lastNode.nodeState, this._startPoint, lastNode.coordinate());
 	}
 	
 	public int usedSteps() {
