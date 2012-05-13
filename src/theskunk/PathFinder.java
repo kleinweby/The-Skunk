@@ -14,6 +14,7 @@ import theskunk.environment.TileState;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAILevelGoodie;
+import apoSkunkman.ai.ApoSkunkmanAILevelSkunkman;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 public class PathFinder extends GenericAStar<EnvironmentState> {
@@ -46,8 +47,13 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				
 				switch (byteLevel[y][x]) {
 				case ApoSkunkmanAIConstants.LEVEL_FREE:
-				case ApoSkunkmanAIConstants.LEVEL_SKUNKMAN:
 					tileState = new TileState(TileState.FreeTileType, p);
+					break;
+				case ApoSkunkmanAIConstants.LEVEL_SKUNKMAN:
+					ApoSkunkmanAILevelSkunkman skunk = level.getSkunkman(p.y, p.x);
+					BombTileState bomb = new BombTileState(p, skunk.getSkunkWidth());
+					bomb.setTimeToLive(skunk.getTimeToExplosion());
+					tileState = bomb;
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_BUSH:
 					tileState = new TileState(TileState.BushTileType, p);
@@ -204,7 +210,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				// makes the wait time to short?
 				//env = new EnvironmentState(env, srcEnv.miliTimeForTile());
 				
-				PathFinder finder = new PathFinder(env, Type.AvoidBomb, sourceNode.coordinate().x, sourceNode.coordinate().y);
+				PathFinder finder = new PathFinder(env, Type.AvoidBomb, 0,0);
 				
 				// Solve the escape.
 				Path path = finder.solution();
@@ -255,9 +261,14 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			return new Node(env, sourceNode, dest, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.coordinate()));
 		}
+		// We may need to go over an bomb to get safe.
 		else if (currentState.tileType() == TileState.BombTileType) {
-			// Well better not go here
-			return null;
+			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
+			
+			env.setStep(new PathMoveStep(direction));
+			
+			return new Node(env, sourceNode, dest, (int)(srcEnv.miliTimeForTile() * 1.2 /* risky */), 
+					this.estimatedCost(env, dest));
 		}
 		else if (currentState.tileType() == TileState.StoneTileType) {
 			// We can not go here

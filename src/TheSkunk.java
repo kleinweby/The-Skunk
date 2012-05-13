@@ -11,6 +11,7 @@ import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAILevelSkunkman;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
+import theskunk.ExecutionState;
 import theskunk.Path;
 import theskunk.PathAssertion;
 import theskunk.PathFinder;
@@ -21,13 +22,11 @@ import theskunk.PathStep;
 import theskunk.PathWaitStep;
 import theskunk.objectives.FindGoalObjective;
 import theskunk.objectives.Objective;
+import theskunk.objectives.StayAliveObjective;
 
 public class TheSkunk extends ApoSkunkmanAI {
 	
-	private int stepIndex;
-	private int remainingWaitTime;
-	private PriorityQueue<Objective> _objectives;
-	private Objective _currentObjective;
+	private ExecutionState state;
 	
 	@Override
 	public String getPlayerName() {
@@ -43,48 +42,51 @@ public class TheSkunk extends ApoSkunkmanAI {
 	public void load(String path) {
 		super.load(path);
 		
-		this.resetState();
-		
-		this._objectives = new PriorityQueue<Objective>();
-		
-		this._objectives.add(new FindGoalObjective());
+		this.state = new ExecutionState();
+				
+		this.state.objectives.add(new FindGoalObjective());
+		this.state.objectives.add(new StayAliveObjective());
 	}
 	
 	@Override
 	public void think(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
-		for (Objective o : this._objectives) {
+		for (Objective o : this.state.objectives) {
 			// Evaluate the objective
-			o.evaluate(level, player);
+			o.evaluate(level, player, this.state);
 			
 			// If the goal is satisfied we need to
 			// work down it's path.
 			if (!o.isSatisfied()) {
-				if (o != this._currentObjective) {
-					this.resetState();
-					this._currentObjective = o;
+				if (o != this.state.currentObjective) {
+					this.state.reset();
+					this.state.currentObjective = o;
+					player.addMessage(String.format("Changed objective to %s", o.toString()));
 					break;
 				}
 			}
-			else if (o == this._currentObjective)
-				this._currentObjective = null;
+			else if (o == this.state.currentObjective) {
+				player.addMessage("Cleared objective...");
+				this.state.currentObjective = null;
+			}
 		}
 		
-		if (this._currentObjective != null) {
-			List<PathStep> steps = this._currentObjective.path().steps();
+		if (this.state.currentObjective != null) {
+			List<PathStep> steps = this.state.currentObjective.path().steps();
 			
-			if (this.stepIndex >= steps.size()) {
-				this._currentObjective = null;
+			if (this.state.stepIndex >= steps.size()) {
+				player.addMessage("Cleared objective...");
+				this.state.currentObjective = null;
 				return;
 			}
 			
-			PathStep step = steps.get(this.stepIndex);
+			PathStep step = steps.get(this.state.stepIndex);
 			
 			for (PathAssertion a : step.assertions()) {
 				if (!a.evaulate(level, player)) {
+					player.addMessage(a + " failed. Restart thinking...");
 					// Current situation does not hold the path anymore
 					this.pathFailed();
 					// Start new
-					player.addMessage(a + " failed. Restart thinking...");
 					this.think(level, player);
 					return;
 				}
@@ -108,7 +110,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 					break;
 				}
 				
-				this.stepIndex++;
+				this.state.stepIndex++;
 			}
 			else if (step instanceof PathLayBombStep) {
 				if (!player.canPlayerLayDownSkunkman()) {
@@ -121,33 +123,27 @@ public class TheSkunk extends ApoSkunkmanAI {
 				
 				player.laySkunkman();
 				
-				this.stepIndex++;
+				this.state.stepIndex++;
 			}
 			else if (step instanceof PathWaitStep) {
-				if (this.remainingWaitTime <= 0)
-					this.remainingWaitTime = ((PathWaitStep)step).duration();
+				if (this.state.remainingWaitTime <= 0)
+					this.state.remainingWaitTime = ((PathWaitStep)step).duration();
 				
-				this.remainingWaitTime -= ApoSkunkmanAIConstants.WAIT_TIME_THINK;
+				this.state.remainingWaitTime -= ApoSkunkmanAIConstants.WAIT_TIME_THINK;
 				
-				if (this.remainingWaitTime <= 0) {
-					this.stepIndex++;
-					this.remainingWaitTime = 0;
+				if (this.state.remainingWaitTime <= 0) {
+					this.state.stepIndex++;
+					this.state.remainingWaitTime = 0;
 				}
 			}
 			
-			this.visualizePath(this._currentObjective.path(),this.stepIndex, player);
+			this.visualizePath(this.state.currentObjective.path(),this.state.stepIndex, player);
 		}
 	}
 	
-	private void resetState() {
-		this._currentObjective = null;
-		this.stepIndex = 0;
-		this.remainingWaitTime = 0;
-	}
-	
 	private void pathFailed() {
-		this._currentObjective.pathFailed();
-		this.resetState();
+		this.state.currentObjective.pathFailed();
+		this.state.reset();
 	}
 	
 	private void visualizePath(Path path, int currentStep, ApoSkunkmanAIPlayer player)

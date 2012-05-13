@@ -1,5 +1,6 @@
 package theskunk.objectives;
 
+import theskunk.ExecutionState;
 import theskunk.Path;
 import theskunk.PathFinder;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
@@ -11,7 +12,7 @@ public class FindGoalObjective implements Objective {
 	private boolean _isSatisfied;
 	
 	@Override
-	public void evaluate(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
+	public void evaluate(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player, ExecutionState state) {
 		if (level.getType() != ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X) {
 			this._path = null;
 			this._isSatisfied = true;

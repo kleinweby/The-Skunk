@@ -25,6 +25,7 @@ public class EnvironmentState {
 	int _maxSkunks;
 	int _currentTime;
 	Point _playerPosition;
+	private boolean _isPlayerAlive;
 	
 	public static int FIELD_WIDTH = 15;
 	public static int FIELD_HEIGHT = 15;
@@ -42,11 +43,13 @@ public class EnvironmentState {
 			this._skunkWidth = this._parentState._skunkWidth;
 			this._maxSkunks = this._parentState._maxSkunks;
 			this._playerPosition = new Point(this._parentState._playerPosition);
+			this._isPlayerAlive = this._parentState._isPlayerAlive;
 		}
 		else {
 			this._tiles = new TileState[FIELD_WIDTH][FIELD_HEIGHT];
 			this._bombTiles = new HashSet<BombTileState>();
 			this._playerPosition = new Point();
+			this._isPlayerAlive = true;
 		}
 		
 		this._currentTime += timeAdvance;
@@ -203,6 +206,11 @@ public class EnvironmentState {
 		this._playerPosition = position;
 	}
 	
+	public boolean isPlayerAlive()
+	{
+		return this._isPlayerAlive;
+	}
+	
 	private void simulateEnvironment() {
 		HashSet<BombTileState> bombs;
 		
@@ -222,6 +230,9 @@ public class EnvironmentState {
 				for (int x = p.x + 1; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
 					TileState state = this.tileStateAt(x, p.y);
 					
+					if (this._playerPosition.equals(new Point(x, p.y)))
+						this._isPlayerAlive = false;
+					
 					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
 						// Only bomb one tile away
@@ -235,6 +246,9 @@ public class EnvironmentState {
 				// walk x downwards
 				for (int x = p.x - 1; x > 0 && x >= p.x - bomb.width(); x--) {
 					TileState state = this.tileStateAt(x, p.y);
+					
+					if (this._playerPosition.equals(new Point(x, p.y)))
+						this._isPlayerAlive = false;
 					
 					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
@@ -250,6 +264,9 @@ public class EnvironmentState {
 				for (int y = p.y + 1; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
 					TileState state = this.tileStateAt(p.x, y);
 					
+					if (this._playerPosition.equals(new Point(p.x, y)))
+						this._isPlayerAlive = false;
+					
 					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
 						// Only bomb one tile away
@@ -263,6 +280,9 @@ public class EnvironmentState {
 				// walk y downwards
 				for (int y = p.y - 1; y > 0 && y >= p.y - bomb.width(); y--) {
 					TileState state = this.tileStateAt(p.x, y);
+					
+					if (this._playerPosition.equals(new Point(p.x, y)))
+						this._isPlayerAlive = false;
 					
 					if (state.tileType() == TileState.BushTileType) {
 						this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
