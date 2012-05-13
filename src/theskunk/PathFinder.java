@@ -276,6 +276,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			for (BombTileState bomb : env.bombTiles()) {
 				Point b = bomb.coordinate();
 				
+				// TODO: check if there is already a bush/stone
+				// that would mark us save =)
 				if (p.y == b.y) {
 					if (Math.abs(p.x - b.x) <= bomb.width()) {
 						estimatedCost = Math.max((Math.abs(p.x - b.x) + 1) * env.miliTimeForTile(),
