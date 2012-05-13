@@ -271,35 +271,26 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		if (this._type == Type.FindGoal)
 			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
 		else if (this._type == Type.AvoidBomb) {
-			TileState tile = env.tileStateAt(this._objX, this._objY);
+			int estimatedCost = 0;
 			
-			if (tile instanceof BombTileState) {
-				BombTileState bomb = (BombTileState)tile;
-				if (p.y == this._objY) {
-					if (Math.abs(p.x - this._objX) > bomb.width()) {
-						// we're safe
-						return 0;
-					}
-					else {
-						return (Math.abs(p.x - this._objX) + 1) * env.miliTimeForTile();
+			for (BombTileState bomb : env.bombTiles()) {
+				Point b = bomb.coordinate();
+				
+				if (p.y == b.y) {
+					if (Math.abs(p.x - b.x) <= bomb.width()) {
+						estimatedCost = Math.max((Math.abs(p.x - b.x) + 1) * env.miliTimeForTile(),
+								estimatedCost);
 					}
 				}
-				else if (p.x == this._objX) {
-					if (Math.abs(p.y - this._objY) > bomb.width()) {
-						// we're safe
-						return 0;
-					}
-					else {
-						return (Math.abs(p.y - this._objY) + 1) * env.miliTimeForTile();
+				else if (p.x == b.x) {
+					if (Math.abs(p.y - b.y) <= bomb.width()) {
+						estimatedCost = Math.max((Math.abs(p.y - b.y) + 1) * env.miliTimeForTile(),
+								estimatedCost);
 					}
 				}
-				else
-					return 0;
 			}
-			else {
-				// No bomb at the coord we should avoid
-				return 0;
-			}
+			
+			return estimatedCost;
 		}
 		throw new RuntimeException("Unknown type");
 	}
