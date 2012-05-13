@@ -65,9 +65,11 @@ public class TheSkunk extends ApoSkunkmanAI {
 					break;
 				}
 			}
+			else if (o == this._currentObjective)
+				this._currentObjective = null;
 		}
 		
-		{
+		if (this._currentObjective != null) {
 			List<PathStep> steps = this._currentObjective.path().steps();
 			
 			if (this.stepIndex >= steps.size()) {
@@ -132,9 +134,9 @@ public class TheSkunk extends ApoSkunkmanAI {
 					this.remainingWaitTime = 0;
 				}
 			}
+			
+			this.visualizePath(this._currentObjective.path(),this.stepIndex, player);
 		}
-		
-		this.visualizePath(this._currentObjective.path(),this.stepIndex, player);
 	}
 	
 	private void resetState() {
