@@ -232,7 +232,10 @@ public class Environment {
 		return this._isPlayerAlive;
 	}
 	
-	
+	@Override
+	public String toString() {
+		return String.format("Env(time=%d, step=%s)", this._currentTime, this._step);
+	}
 	
 	// Modify state
 	protected void updateTileState(TileState state) {
