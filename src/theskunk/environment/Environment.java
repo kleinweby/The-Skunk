@@ -224,13 +224,15 @@ public class Environment {
 	}
 	
 	public Point playerPosition() {
-		return new Point(this._playerPosition);
+		return this._playerPosition;
 	}
 	
 	public boolean isPlayerAlive()
 	{
 		return this._isPlayerAlive;
 	}
+	
+	
 	
 	// Modify state
 	protected void updateTileState(TileState state) {
