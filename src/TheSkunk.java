@@ -78,7 +78,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 				this.state.currentObjective = null;
 				return;
 			}
-			
+
 			PathStep step = steps.get(this.state.stepIndex);
 			
 			for (PathAssertion a : step.assertions()) {
@@ -120,7 +120,6 @@ public class TheSkunk extends ApoSkunkmanAI {
 					player.addMessage("Planned laying down skunk. Not able to. Restart thinking...");
 					this.think(level, player);
 				}
-				
 				player.laySkunkman();
 				
 				this.state.stepIndex++;
@@ -142,7 +141,6 @@ public class TheSkunk extends ApoSkunkmanAI {
 	}
 	
 	private void pathFailed() {
-		this.state.currentObjective.pathFailed();
 		this.state.reset();
 	}
 	
