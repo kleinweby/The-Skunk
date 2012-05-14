@@ -3,7 +3,7 @@ package theskunk.objectives;
 import theskunk.ExecutionState;
 import theskunk.environment.Environment;
 import theskunk.path.Path;
-import theskunk.path.PathFinder;
+import theskunk.path.Finder;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 
 public class FindGoalObjective implements Objective {
@@ -17,8 +17,8 @@ public class FindGoalObjective implements Objective {
 			this._isSatisfied = true;
 		}
 		else if (!(this._path != null && this._path.assertAgainstApo(state.level, state.player))){
-			PathFinder finder = new PathFinder(env, 
-					PathFinder.Type.FindGoal, state.level.getGoalXPoint().x, state.level.getGoalXPoint().y);
+			Finder finder = new Finder(env, 
+					Finder.Type.FindGoal, state.level.getGoalXPoint().x, state.level.getGoalXPoint().y);
 			
 			this._path = finder.solution();
 			this._isSatisfied = false;

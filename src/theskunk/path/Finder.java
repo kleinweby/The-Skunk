@@ -21,7 +21,7 @@ import theskunk.path.steps.Step;
 import theskunk.path.steps.WaitStep;
 import theskunk.path.steps.MoveStep.Direction;
 
-public class PathFinder extends GenericAStar<Environment> {
+public class Finder extends GenericAStar<Environment> {
 	public enum Type {
 		FindGoal,
 		AvoidBomb
@@ -38,7 +38,7 @@ public class PathFinder extends GenericAStar<Environment> {
 	private long _timeConsumed;
 	private long _timeConsumedInSubFinders;
 	
-	public PathFinder(Environment env, Type type, int objX, int objY) {		
+	public Finder(Environment env, Type type, int objX, int objY) {		
 		this._objX = objX;
 		this._objY = objY;
 		this._type = type;
@@ -167,7 +167,7 @@ public class PathFinder extends GenericAStar<Environment> {
 			
 			// Find escape route
 			{	
-				PathFinder finder = new PathFinder(env, Type.AvoidBomb, 0,0);
+				Finder finder = new Finder(env, Type.AvoidBomb, 0,0);
 				
 				// Solve the escape.
 				Path path = finder.solution();
@@ -194,7 +194,7 @@ public class PathFinder extends GenericAStar<Environment> {
 				assert !(env.tileStateAt(sourceNode.coordinate().x, sourceNode.coordinate().y) instanceof BombTileState);
 				
 				// Ok bomb is now exploded, get back to final destination
-				finder = new PathFinder(env, Type.FindGoal, dest.x, dest.y);
+				finder = new Finder(env, Type.FindGoal, dest.x, dest.y);
 				// There is an free path, which is guranteed
 				// to be least expensive. So save the computing
 				// time and don't simulate bombs

@@ -7,8 +7,8 @@ import theskunk.ExecutionState;
 import theskunk.environment.BombTileState;
 import theskunk.environment.Environment;
 import theskunk.path.Path;
-import theskunk.path.PathFinder;
-import theskunk.path.PathFinder.Type;
+import theskunk.path.Finder;
+import theskunk.path.Finder.Type;
 import theskunk.path.steps.InvalidStepException;
 import theskunk.path.steps.Step;
 
@@ -37,7 +37,7 @@ public class StayAliveObjective implements Objective {
 		}
 		
 		if (this.isBombThreatinging(env) && this.isThreatendAlongPath(env, remainingSteps)) {
-			PathFinder finder = new PathFinder(env, Type.AvoidBomb, 0, 0);
+			Finder finder = new Finder(env, Type.AvoidBomb, 0, 0);
 			
 			this._isSatisfied = false;
 			this._path = finder.solution();
