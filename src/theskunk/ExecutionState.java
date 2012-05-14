@@ -2,6 +2,9 @@ package theskunk;
 
 import java.util.PriorityQueue;
 
+import apoSkunkman.ai.ApoSkunkmanAILevel;
+import apoSkunkman.ai.ApoSkunkmanAIPlayer;
+
 import theskunk.objectives.Objective;
 
 public class ExecutionState {
@@ -9,6 +12,8 @@ public class ExecutionState {
 	public int remainingWaitTime;
 	public PriorityQueue<Objective> objectives;
 	public Objective currentObjective;
+	public ApoSkunkmanAILevel level;
+	public ApoSkunkmanAIPlayer player;
 	
 	public ExecutionState() {
 		this.objectives = new PriorityQueue<Objective>();

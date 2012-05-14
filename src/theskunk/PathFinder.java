@@ -162,12 +162,17 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		
 		EnvironmentState srcEnv = sourceNode.nodeState();
 		TileState currentState = srcEnv.tileStateAt(dest.x, dest.y);
-		
+				
 		// Perfect =) we can simply go there
 		if (currentState.tileType() == TileState.FreeTileType) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
 			
-			env.setStep(new PathMoveStep(direction));
+			{
+				PathStep step = new PathMoveStep(direction);
+				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
+			
+				env.setStep(step);
+			}
 			
 			return new Node(env, sourceNode, dest, srcEnv.miliTimeForTile(), 
 					this.estimatedCost(env, dest));
@@ -181,7 +186,12 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			
 			// TODO: change env to reflect goodie
 			
-			env.setStep(new PathMoveStep(direction));
+			{
+				PathStep step = new PathMoveStep(direction);
+				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
+			
+				env.setStep(step);
+			}
 			
 			return new Node(env, sourceNode, dest, srcEnv.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.coordinate()));
@@ -265,7 +275,12 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		else if (currentState.tileType() == TileState.BombTileType) {
 			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
 			
-			env.setStep(new PathMoveStep(direction));
+			{
+				PathStep step = new PathMoveStep(direction);
+				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
+			
+				env.setStep(step);
+			}
 			
 			return new Node(env, sourceNode, dest, (int)(srcEnv.miliTimeForTile() * 1.2 /* risky */), 
 					this.estimatedCost(env, dest));

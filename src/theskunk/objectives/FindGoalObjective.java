@@ -3,6 +3,7 @@ package theskunk.objectives;
 import theskunk.ExecutionState;
 import theskunk.Path;
 import theskunk.PathFinder;
+import theskunk.environment.EnvironmentState;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
@@ -12,14 +13,14 @@ public class FindGoalObjective implements Objective {
 	private boolean _isSatisfied;
 	
 	@Override
-	public void evaluate(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player, ExecutionState state) {
-		if (level.getType() != ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X) {
+	public void evaluate(EnvironmentState env, ExecutionState state) {
+		if (state.level.getType() != ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X) {
 			this._path = null;
 			this._isSatisfied = true;
 		}
-		else if (!(this._path != null && this._path.assertAgainstApo(level, player))){
-			PathFinder finder = new PathFinder(PathFinder.environmentFromApo(level, player), 
-					PathFinder.Type.FindGoal, level.getGoalXPoint().x, level.getGoalXPoint().y);
+		else if (!(this._path != null && this._path.assertAgainstApo(state.level, state.player))){
+			PathFinder finder = new PathFinder(env, 
+					PathFinder.Type.FindGoal, state.level.getGoalXPoint().x, state.level.getGoalXPoint().y);
 			
 			this._path = finder.solution();
 			this._isSatisfied = false;

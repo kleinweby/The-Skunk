@@ -17,4 +17,9 @@ public class PathMoveStep extends PathStep {
 	public Direction direction() {
 		return this._direction;
 	}
+	
+	@Override
+	public String toString() {
+		return "Move " + this._direction;
+	}
 }

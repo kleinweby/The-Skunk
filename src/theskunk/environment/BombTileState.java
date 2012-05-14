@@ -34,4 +34,9 @@ public class BombTileState extends TileState {
 	public void setTimeToLive(int ttl) {
 		this._timeToLive = ttl;
 	}
+	
+	@Override
+	public String toString() {
+		return "Bomb " + this._coordinate;
+	}
 }

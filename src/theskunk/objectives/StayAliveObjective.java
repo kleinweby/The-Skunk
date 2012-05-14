@@ -32,10 +32,17 @@ public class StayAliveObjective implements Objective {
 	}
 
 	@Override
-	public void evaluate(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player, ExecutionState state) {
-		EnvironmentState env = PathFinder.environmentFromApo(level, player);
+	public void evaluate(EnvironmentState env, ExecutionState state) {	
+		List<PathStep> remainingSteps = null;
 		
-		if (this.isBombThreatinging(env, state)) {
+		if (state.currentObjective != null) {
+			Path p = state.currentObjective.path();
+			if (state.stepIndex < p.steps().size()) {
+				remainingSteps = p.steps().subList(state.stepIndex, p.steps().size() - 1);
+			}
+		}
+		
+		if (this.isBombThreatinging(env) && this.isThreatendAlongPath(env, remainingSteps)) {
 			PathFinder finder = new PathFinder(env, Type.AvoidBomb, 0, 0);
 			
 			this._isSatisfied = false;
@@ -68,12 +75,9 @@ public class StayAliveObjective implements Objective {
 		this._path = null;
 	}
 
-	private boolean isBombThreatinging(EnvironmentState env, ExecutionState state) {
+	private boolean isBombThreatinging(EnvironmentState env) {
 		Point p = env.playerPosition();
 		boolean found = false;
-		
-		// Make a shadow copy to not change the calling env
-		env = new EnvironmentState(env, 0);
 		
 		for (BombTileState bomb : env.bombTiles()) {
 			Point b = bomb.coordinate();
@@ -94,40 +98,40 @@ public class StayAliveObjective implements Objective {
 			}
 		}
 		
-		// We have points, now look whether the current path will avoid them
-		if (found && state.currentObjective != null) {
-			List<PathStep> steps = state.currentObjective.path().steps();
-			
-			if (state.stepIndex >= steps.size())
+		return found;
+	}
+	
+	private boolean isThreatendAlongPath(EnvironmentState env, List<PathStep> pathSteps) {
+		// Make a shadow copy to not change the calling env
+		env = new EnvironmentState(env, 0);
+		
+		if (pathSteps == null)
+			return isBombThreatinging(env);
+		
+		for (PathStep step : pathSteps) {
+			if (!env.isPlayerAlive())
 				return true;
 			
-			steps = steps.subList(state.stepIndex, steps.size() - 1);
-			
-			for (PathStep step : steps) {
-				if (!env.isPlayerAlive())
-					return true;
-				
-				if (env.bombTiles().isEmpty())
-					return false;
-				
-				// Now move the env forward
-				if (step instanceof PathMoveStep) {					
-					env.setStep(step);
-					env = new EnvironmentState(env, env.miliTimeForTile());
-				}
-				else if (step instanceof PathLayBombStep) {					
-					env.setStep(step);
-					env = new EnvironmentState(env, env.miliTimeForTile());
-				}
-				else if (step instanceof PathWaitStep) {	
-					PathWaitStep wait = (PathWaitStep) step;
-					env.setStep(step);
-					env = new EnvironmentState(env, wait.duration());
-				}
+			if (!isBombThreatinging(env)) {
+				return false;
 			}
-			return true;
+			
+			// Now move the env forward
+			if (step instanceof PathMoveStep) {					
+				env.setStep(step);
+				env = new EnvironmentState(env, env.miliTimeForTile());
+			}
+			else if (step instanceof PathLayBombStep) {					
+				env.setStep(step);
+				env = new EnvironmentState(env, env.miliTimeForTile());
+			}
+			else if (step instanceof PathWaitStep) {	
+				PathWaitStep wait = (PathWaitStep) step;
+				env.setStep(step);
+				env = new EnvironmentState(env, wait.duration());
+			}
 		}
 		
-		return found;
+		return isBombThreatinging(env);
 	}
 }

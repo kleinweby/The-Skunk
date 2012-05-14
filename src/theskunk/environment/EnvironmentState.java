@@ -178,6 +178,7 @@ public class EnvironmentState {
 		}
 		else if (step instanceof PathMoveStep) {
 			PathMoveStep move = (PathMoveStep)step;
+			Point oldPosition = new Point(this._playerPosition);
 			
 			switch (move.direction()) {
 			case Up:
@@ -193,13 +194,27 @@ public class EnvironmentState {
 				this._playerPosition.x += 1;
 				break;
 			}
+			
+			// Can we even go there?
+			if (this._playerPosition.y >= 0 && this._playerPosition.y <= FIELD_HEIGHT &&
+					this._playerPosition.x >= 0 && this._playerPosition.x <= FIELD_WIDTH) {
+				TileState tile = this._tiles[this._playerPosition.x][this._playerPosition.y];
+				
+				if (tile.tileType() == TileState.BushTileType || tile.tileType() == TileState.StoneTileType)
+					// Step is invalid
+					return;
+			}
+			else {
+				// Step invalid
+				return;
+			}
 		}
 		
 		this._step = step;
 	}
 	
 	public Point playerPosition() {
-		return this._playerPosition;
+		return new Point(this._playerPosition);
 	}
 	
 	public void setPlayerPosition(Point position) {
@@ -227,7 +242,7 @@ public class EnvironmentState {
 				
 				// Now let this thing explode
 				// First walk x upwards
-				for (int x = p.x + 1; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
+				for (int x = p.x; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
 					TileState state = this.tileStateAt(x, p.y);
 					
 					if (this._playerPosition.equals(new Point(x, p.y)))
@@ -244,7 +259,7 @@ public class EnvironmentState {
 				}
 				
 				// walk x downwards
-				for (int x = p.x - 1; x > 0 && x >= p.x - bomb.width(); x--) {
+				for (int x = p.x; x > 0 && x >= p.x - bomb.width(); x--) {
 					TileState state = this.tileStateAt(x, p.y);
 					
 					if (this._playerPosition.equals(new Point(x, p.y)))
@@ -261,7 +276,7 @@ public class EnvironmentState {
 				}
 				
 				// walk y upwards
-				for (int y = p.y + 1; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
+				for (int y = p.y; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
 					TileState state = this.tileStateAt(p.x, y);
 					
 					if (this._playerPosition.equals(new Point(p.x, y)))
@@ -278,7 +293,7 @@ public class EnvironmentState {
 				}
 				
 				// walk y downwards
-				for (int y = p.y - 1; y > 0 && y >= p.y - bomb.width(); y--) {
+				for (int y = p.y; y > 0 && y >= p.y - bomb.width(); y--) {
 					TileState state = this.tileStateAt(p.x, y);
 					
 					if (this._playerPosition.equals(new Point(p.x, y)))
