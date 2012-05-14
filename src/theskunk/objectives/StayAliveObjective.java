@@ -72,6 +72,9 @@ public class StayAliveObjective implements Objective {
 		Point p = env.playerPosition();
 		boolean found = false;
 		
+		// Make a shadow copy to not change the calling env
+		env = new EnvironmentState(env, 0);
+		
 		for (BombTileState bomb : env.bombTiles()) {
 			Point b = bomb.coordinate();
 			
