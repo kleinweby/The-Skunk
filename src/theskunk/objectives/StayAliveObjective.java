@@ -11,6 +11,7 @@ import theskunk.path.Path;
 import theskunk.path.PathFinder;
 import theskunk.path.PathFinder.Type;
 import theskunk.path.assertions.PathBushAssertion;
+import theskunk.path.steps.InvalidStepException;
 import theskunk.path.steps.LayBombStep;
 import theskunk.path.steps.MoveStep;
 import theskunk.path.steps.Step;
@@ -114,7 +115,14 @@ public class StayAliveObjective implements Objective {
 				return false;
 			}
 			
-			env = new Environment(env, step);
+			try {
+				env = new Environment(env, step);
+			}
+			catch (InvalidStepException e) {
+				// Path does not work, so it will most likely not
+				// keep us alive
+				return true;
+			}
 		}
 		
 		return isBombThreatinging(env);
