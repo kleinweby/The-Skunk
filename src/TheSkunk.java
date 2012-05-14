@@ -1,29 +1,23 @@
 import java.awt.Color;
 import java.awt.Point;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
-
-import apoSkunkman.ai.ApoSkunkmanAI;
-import apoSkunkman.ai.ApoSkunkmanAIConstants;
-import apoSkunkman.ai.ApoSkunkmanAIEnemy;
-import apoSkunkman.ai.ApoSkunkmanAILevel;
-import apoSkunkman.ai.ApoSkunkmanAILevelSkunkman;
-import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 import theskunk.ExecutionState;
-import theskunk.Path;
-import theskunk.PathAssertion;
-import theskunk.PathFinder;
-import theskunk.PathLayBombStep;
-import theskunk.PathMoveStep;
-import theskunk.PathMoveStep.Direction;
-import theskunk.PathStep;
-import theskunk.PathWaitStep;
-import theskunk.environment.EnvironmentState;
+import theskunk.environment.Environment;
 import theskunk.objectives.FindGoalObjective;
 import theskunk.objectives.Objective;
 import theskunk.objectives.StayAliveObjective;
+import theskunk.path.Path;
+import theskunk.path.assertions.Assertable;
+import theskunk.path.assertions.Assertion;
+import theskunk.path.steps.LayBombStep;
+import theskunk.path.steps.MoveStep;
+import theskunk.path.steps.Step;
+import theskunk.path.steps.WaitStep;
+import apoSkunkman.ai.ApoSkunkmanAI;
+import apoSkunkman.ai.ApoSkunkmanAIConstants;
+import apoSkunkman.ai.ApoSkunkmanAILevel;
+import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 public class TheSkunk extends ApoSkunkmanAI {
 	
@@ -51,7 +45,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 	
 	@Override
 	public void think(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
-		EnvironmentState env = PathFinder.environmentFromApo(level, player);
+		Environment env = Environment.envFromApo(level, player);
 		this.state.level = level;
 		this.state.player = player;
 		
@@ -77,7 +71,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 		}
 		
 		if (this.state.currentObjective != null) {
-			List<PathStep> steps = this.state.currentObjective.path().steps();
+			List<Step> steps = this.state.currentObjective.path().steps();
 			
 			if (this.state.stepIndex >= steps.size()) {
 				player.addMessage("Cleared objective...");
@@ -86,34 +80,34 @@ public class TheSkunk extends ApoSkunkmanAI {
 			}
 			
 			// Check if next step would violate a objective
-			for (Objective supirior : this.state.objectives) {
-				if (supirior.equals(this.state.currentObjective)) {
-					// Went down the the current objective
-					// all are satisfied, so move on with this.
-					break;
-				}
-				
-				int oldStep = this.state.stepIndex;
-				this.state.stepIndex++;
-				EnvironmentState env2 = new EnvironmentState(env, 0);
-				player.addMessage("Player pos " + env2.playerPosition());
-				env2.setStep(this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
-				player.addMessage("Step " + this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
-				player.addMessage("Player pos " + env2.playerPosition());
-				player.addMessage("Bombs" + env2.bombTiles());
-				env2 = new EnvironmentState(env2, env.miliTimeForTile());
-				supirior.evaluate(env2, this.state);
-				this.state.stepIndex = oldStep;
-				
-				if (!supirior.isSatisfied()) {
-					player.addMessage(String.format("Would violate"));
-					return;
-				}
-			}
+//			for (Objective supirior : this.state.objectives) {
+//				if (supirior.equals(this.state.currentObjective)) {
+//					// Went down the the current objective
+//					// all are satisfied, so move on with this.
+//					break;
+//				}
+//				
+//				int oldStep = this.state.stepIndex;
+//				this.state.stepIndex++;
+//				EnvironmentState env2 = new EnvironmentState(env, 0);
+//				player.addMessage("Player pos " + env2.playerPosition());
+//				env2.setStep(this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
+//				player.addMessage("Step " + this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
+//				player.addMessage("Player pos " + env2.playerPosition());
+//				player.addMessage("Bombs" + env2.bombTiles());
+//				env2 = new EnvironmentState(env2, env.miliTimeForTile());
+//				supirior.evaluate(env2, this.state);
+//				this.state.stepIndex = oldStep;
+//				
+//				if (!supirior.isSatisfied()) {
+//					player.addMessage(String.format("Would violate"));
+//					return;
+//				}
+//			}
 
-			PathStep step = steps.get(this.state.stepIndex);
+			Assertable step = steps.get(this.state.stepIndex);
 			
-			for (PathAssertion a : step.assertions()) {
+			for (Assertion a : step.assertions()) {
 				if (!a.evaulate(level, player)) {
 					player.addMessage(a + " failed. Restart thinking...");
 					// Current situation does not hold the path anymore
@@ -124,8 +118,8 @@ public class TheSkunk extends ApoSkunkmanAI {
 				}
 			}
 			
-			if (step instanceof PathMoveStep) {
-				PathMoveStep move = (PathMoveStep)step;
+			if (step instanceof MoveStep) {
+				MoveStep move = (MoveStep)step;
 				
 				switch (move.direction()) {
 				case Down:
@@ -144,7 +138,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 				player.addMessage("Go " + move);
 				this.state.stepIndex++;
 			}
-			else if (step instanceof PathLayBombStep) {
+			else if (step instanceof LayBombStep) {
 				if (!player.canPlayerLayDownSkunkman()) {
 					// Current situation does not hold the path anymore
 					this.pathFailed();
@@ -156,9 +150,9 @@ public class TheSkunk extends ApoSkunkmanAI {
 				
 				this.state.stepIndex++;
 			}
-			else if (step instanceof PathWaitStep) {
+			else if (step instanceof WaitStep) {
 				if (this.state.remainingWaitTime <= 0)
-					this.state.remainingWaitTime = ((PathWaitStep)step).duration();
+					this.state.remainingWaitTime = ((WaitStep)step).duration();
 				
 				this.state.remainingWaitTime -= ApoSkunkmanAIConstants.WAIT_TIME_THINK;
 				
@@ -184,7 +178,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 		Point lastPoint = path.startPlayerPosition();
 		int x = 0;
 		
-		for (PathStep step : path.steps()) {
+		for (Assertable step : path.steps()) {
 			Color color;
 			
 			if (x < currentStep) {
@@ -197,8 +191,8 @@ public class TheSkunk extends ApoSkunkmanAI {
 				color = new Color(255,0,0);
 			}
 			
-			if (step instanceof PathMoveStep) {
-				PathMoveStep move = (PathMoveStep)step;
+			if (step instanceof MoveStep) {
+				MoveStep move = (MoveStep)step;
 				Point nextPoint = null;
 				
 				switch (move.direction()) {
@@ -219,10 +213,10 @@ public class TheSkunk extends ApoSkunkmanAI {
 				player.drawLine(lastPoint.x + 0.5f, lastPoint.y + 0.5f, nextPoint.x + 0.5f, nextPoint.y + 0.5f, 300, color);
 				lastPoint = nextPoint;
 			}
-			else if (step instanceof PathLayBombStep) {
+			else if (step instanceof LayBombStep) {
 				player.drawCircle(lastPoint.x + 0.5f, lastPoint.y + 0.5f, 0.15f, true, 300, color);
 			}
-			else if (step instanceof PathWaitStep) {
+			else if (step instanceof WaitStep) {
 				player.drawRect(lastPoint.x + 0.5f - 0.15f, lastPoint.y + 0.5f - 0.15f, 0.3f, 0.3f, false, 300, color);
 			}
 			

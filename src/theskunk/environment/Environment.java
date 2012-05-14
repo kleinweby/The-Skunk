@@ -1,40 +1,102 @@
 package theskunk.environment;
 
 import java.awt.Point;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import theskunk.PathLayBombStep;
-import theskunk.PathMoveStep;
-import theskunk.PathStep;;
+import apoSkunkman.ai.ApoSkunkmanAIConstants;
+import apoSkunkman.ai.ApoSkunkmanAILevel;
+import apoSkunkman.ai.ApoSkunkmanAILevelSkunkman;
+import apoSkunkman.ai.ApoSkunkmanAIPlayer;
+
+import theskunk.path.steps.LayBombStep;
+import theskunk.path.steps.MoveStep;
+import theskunk.path.steps.Step;
+import theskunk.path.steps.WaitStep;
 
 
 class TileAlreadyChanged extends RuntimeException {
 	private static final long serialVersionUID = 1506153837316228004L;
 }
 
-public class EnvironmentState {
-	EnvironmentState _parentState;
-	TileState _tiles[][];
-	HashSet<BombTileState> _bombTiles;
-	PathStep _step;
-	int _miliTimeForTile;
-	int _skunkWidth;
-	int _maxSkunks;
-	int _currentTime;
-	Point _playerPosition;
-	private boolean _isPlayerAlive;
+public class Environment {
+	protected Environment _parentState;
+	protected TileState _tiles[][];
+	protected HashSet<BombTileState> _bombTiles;
+	protected Step _step;
+	protected int _miliTimeForTile;
+	protected int _skunkWidth;
+	protected int _maxSkunks;
+	protected int _currentTime;
+	protected Point _playerPosition;
+	protected boolean _isPlayerAlive;
+	// Is true when it has become a parent
+	// this is mainly for assertion to avoid
+	// changing a parent env after a child has
+	// been created
+	protected boolean _hasChildren;
 	
 	public static int FIELD_WIDTH = 15;
 	public static int FIELD_HEIGHT = 15;
 	
-	public EnvironmentState(EnvironmentState parent, int timeAdvance) {
+	public static Environment envFromApo(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
+		MutableEnvironment env = new MutableEnvironment();
+		
+		env.setCurrentTime(level.getStartTime() - level.getTime());
+		
+		// Populate this state
+		byte byteLevel[][] = level.getLevelAsByte();
+		
+		for (int x = 0; x < byteLevel.length; x++) {
+			for (int y = 0; y < byteLevel[x].length; y++) {
+				TileState tileState = null;
+				Point p = new Point(x,y);
+				
+				switch (byteLevel[y][x]) {
+				case ApoSkunkmanAIConstants.LEVEL_FREE:
+					tileState = new TileState(TileState.FreeTileType, p);
+					break;
+				case ApoSkunkmanAIConstants.LEVEL_SKUNKMAN:
+					ApoSkunkmanAILevelSkunkman skunk = level.getSkunkman(p.y, p.x);
+					BombTileState bomb = new BombTileState(p, skunk.getSkunkWidth());
+					bomb.setTimeToLive(skunk.getTimeToExplosion());
+					tileState = bomb;
+					break;
+				case ApoSkunkmanAIConstants.LEVEL_BUSH:
+					tileState = new TileState(TileState.BushTileType, p);
+					break;
+				case ApoSkunkmanAIConstants.LEVEL_GOODIE:
+					tileState = new TileState(TileState.GoodieTileType, p);
+					break;
+				case ApoSkunkmanAIConstants.LEVEL_STONE:
+					tileState = new TileState(TileState.StoneTileType, p);
+					break;
+				default:
+					continue;
+				}
+				
+				env.updateTileState(tileState);
+			}
+		}
+		
+		env.setMaxSkunks(player.getMaxSkunkman());
+		env.setMiliTimeForTile(player.getMSForOneTile());
+		env.setSkunkWidth(player.getSkunkWidth());
+		env.setPlayerPosition(new Point(player.getPlayerX(), player.getPlayerY()));
+		
+		return env;
+	}
+	
+	public Environment() {
+		this(null);
+	}
+	
+	public Environment(Environment parent) {
 		this._parentState = parent;
 		
-		
 		if (this._parentState != null) {
+			this._parentState._hasChildren = true;
 			this._currentTime = this._parentState.currentTime();
 			this._tiles = this._parentState._tiles;
 			this._bombTiles = this._parentState._bombTiles;
@@ -50,10 +112,62 @@ public class EnvironmentState {
 			this._bombTiles = new HashSet<BombTileState>();
 			this._playerPosition = new Point();
 			this._isPlayerAlive = true;
+			this._hasChildren = false;
+		}
+	}
+	
+	public Environment(Environment parent, Step step) {
+		this(parent);
+		
+		// Incoperate the step
+		if (step instanceof LayBombStep) {
+			// Set the tile to be a bomb
+			this.updateTileState(new BombTileState(this.playerPosition(), this.skunkWidth()));
+			this._currentTime += 20; // TODO: real thing
+		}
+		else if (step instanceof MoveStep) {
+			MoveStep move = (MoveStep)step;
+			
+			switch (move.direction()) {
+			case Up:
+				this._playerPosition.y -= 1;
+				break;
+			case Down:
+				this._playerPosition.y += 1;
+				break;
+			case Left:
+				this._playerPosition.x -= 1;
+				break;
+			case Right:
+				this._playerPosition.x += 1;
+				break;
+			}
+			
+			// Can we even go there?
+			if (this._playerPosition.y >= 0 && this._playerPosition.y <= FIELD_HEIGHT &&
+					this._playerPosition.x >= 0 && this._playerPosition.x <= FIELD_WIDTH) {
+				TileState tile = this._tiles[this._playerPosition.x][this._playerPosition.y];
+				
+				if (tile.tileType() == TileState.BushTileType || tile.tileType() == TileState.StoneTileType)
+					throw new RuntimeException("Invalid step!");
+			}
+			else {
+				throw new RuntimeException("Invalid step!");
+			}
+			
+			this._currentTime += this.miliTimeForTile();
+		}
+		else if (step instanceof WaitStep) {
+			WaitStep wait = (WaitStep)step;
+			
+			this._currentTime += wait.duration();
+		}
+		else {
+			throw new RuntimeException("Unknown step!");
 		}
 		
-		this._currentTime += timeAdvance;
-
+		this._step = step;
+		
 		this.simulateEnvironment();
 	}
 	
@@ -92,9 +206,42 @@ public class EnvironmentState {
 		return this._bombTiles;
 	}
 	
+	// Returns the steps of this env object
+	// Does now go up like the others
+	public List<Step> steps() {
+		LinkedList<Step> steps = new LinkedList<Step>();
+		
+		Environment env = this;
+		
+		while (env != null) {
+			if (env._step != null)
+				steps.addFirst(env._step);
+			
+			env = env._parentState;
+		}
+		
+		return steps;
+	}
+	
+	public Point playerPosition() {
+		return this._playerPosition;
+	}
+	
+	public boolean isPlayerAlive()
+	{
+		return this._isPlayerAlive;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("Env(time=%d, step=%s)", this._currentTime, this._step);
+	}
+	
 	// Modify state
-	public void updateTileState(TileState state) {
+	protected void updateTileState(TileState state) {
 		assert state != null;
+		assert !this._hasChildren;
+
 		TileState prevState;
 		int x = state.coordinate().x;
 		int y = state.coordinate().y;
@@ -133,97 +280,31 @@ public class EnvironmentState {
 		this._tiles[x][y] = state;
 	}
 
-	public void setMiliTimeForTile(int time) {
+	protected void setMiliTimeForTile(int time) {
 		assert time > 0;
-		
+		assert !this._hasChildren;
+
 		this._miliTimeForTile = time;
 	}
 
-	public void setSkunkWidth(int width) {
+	protected void setSkunkWidth(int width) {
 		assert width > 0;
-		
+		assert !this._hasChildren;
+
 		this._skunkWidth = width;
 	}
 
-	public void setMaxSkunks(int maxSkunks) {
+	protected void setMaxSkunks(int maxSkunks) {
 		assert maxSkunks > 0;
+		assert !this._hasChildren;
 		
 		this._maxSkunks = maxSkunks;
 	}
 	
-	// Returns the steps of this env object
-	// Does now go up like the others
-	public List<PathStep> steps() {
-		LinkedList<PathStep> steps = new LinkedList<PathStep>();
+	protected void setPlayerPosition(Point position) {
+		assert !this._hasChildren;
 		
-		EnvironmentState env = this;
-		
-		while (env != null) {
-			if (env._step != null)
-				steps.addFirst(env._step);
-			
-			env = env._parentState;
-		}
-		
-		return steps;
-	}
-	
-	public void setStep(PathStep step) {
-		if (this._step != null)
-			throw new RuntimeException("This env already has an step set!");
-		
-		if (step instanceof PathLayBombStep) {
-			// Set the tile to be a bomb
-			this.updateTileState(new BombTileState(this.playerPosition(), this.skunkWidth()));
-		}
-		else if (step instanceof PathMoveStep) {
-			PathMoveStep move = (PathMoveStep)step;
-			Point oldPosition = new Point(this._playerPosition);
-			
-			switch (move.direction()) {
-			case Up:
-				this._playerPosition.y -= 1;
-				break;
-			case Down:
-				this._playerPosition.y += 1;
-				break;
-			case Left:
-				this._playerPosition.x -= 1;
-				break;
-			case Right:
-				this._playerPosition.x += 1;
-				break;
-			}
-			
-			// Can we even go there?
-			if (this._playerPosition.y >= 0 && this._playerPosition.y <= FIELD_HEIGHT &&
-					this._playerPosition.x >= 0 && this._playerPosition.x <= FIELD_WIDTH) {
-				TileState tile = this._tiles[this._playerPosition.x][this._playerPosition.y];
-				
-				if (tile.tileType() == TileState.BushTileType || tile.tileType() == TileState.StoneTileType)
-					// Step is invalid
-					return;
-			}
-			else {
-				// Step invalid
-				return;
-			}
-		}
-		
-		this._step = step;
-	}
-	
-	public Point playerPosition() {
-		return new Point(this._playerPosition);
-	}
-	
-	public void setPlayerPosition(Point position) {
 		this._playerPosition = position;
-	}
-	
-	public boolean isPlayerAlive()
-	{
-		return this._isPlayerAlive;
 	}
 	
 	private void simulateEnvironment() {

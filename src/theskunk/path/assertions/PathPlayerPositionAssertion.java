@@ -1,11 +1,12 @@
-package theskunk;
+package theskunk.path.assertions;
 
 import java.awt.Point;
+
 
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-public class PathPlayerPositionAssertion extends PathAssertion {
+public class PathPlayerPositionAssertion implements Assertion {
 	private Point _expectedLocation;
 	
 	public PathPlayerPositionAssertion(Point location) {

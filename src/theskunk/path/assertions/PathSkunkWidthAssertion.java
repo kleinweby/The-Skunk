@@ -1,9 +1,9 @@
-package theskunk;
+package theskunk.path.assertions;
 
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-public class PathSkunkWidthAssertion extends PathAssertion {
+public class PathSkunkWidthAssertion implements Assertion {
 	private int _expectedWidth;
 	
 	public PathSkunkWidthAssertion(int expectedWidth) {
