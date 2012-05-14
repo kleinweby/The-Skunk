@@ -3,17 +3,15 @@ package theskunk.objectives;
 import theskunk.ExecutionState;
 import theskunk.Path;
 import theskunk.PathFinder;
-import theskunk.environment.EnvironmentState;
+import theskunk.environment.Environment;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
-import apoSkunkman.ai.ApoSkunkmanAILevel;
-import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 public class FindGoalObjective implements Objective {
 	private Path _path;
 	private boolean _isSatisfied;
 	
 	@Override
-	public void evaluate(EnvironmentState env, ExecutionState state) {
+	public void evaluate(Environment env, ExecutionState state) {
 		if (state.level.getType() != ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X) {
 			this._path = null;
 			this._isSatisfied = true;

@@ -6,16 +6,16 @@ import java.util.List;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-import theskunk.environment.EnvironmentState;
+import theskunk.environment.Environment;
 
 public class Path {
 	private List<PathStep> _steps;
 	private List<PathAssertion> _assertions;
-	private EnvironmentState _finalState;
+	private Environment _finalState;
 	private Point _finalPlayerPosition;
 	private Point _startPlayerPosition;
 	
-	protected Path(List<PathStep> steps, List<PathAssertion> assertions, EnvironmentState finalState, Point startPlayerPosition, Point finalPlayerPosition) {
+	protected Path(List<PathStep> steps, List<PathAssertion> assertions, Environment finalState, Point startPlayerPosition, Point finalPlayerPosition) {
 		this._steps = steps;
 		this._finalState = finalState;
 		this._finalPlayerPosition = finalPlayerPosition;
@@ -27,7 +27,7 @@ public class Path {
 		return this._steps;
 	}
 	
-	public EnvironmentState finalState() {
+	public Environment finalState() {
 		return this._finalState;
 	}
 	

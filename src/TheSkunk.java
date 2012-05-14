@@ -20,7 +20,7 @@ import theskunk.PathMoveStep;
 import theskunk.PathMoveStep.Direction;
 import theskunk.PathStep;
 import theskunk.PathWaitStep;
-import theskunk.environment.EnvironmentState;
+import theskunk.environment.Environment;
 import theskunk.objectives.FindGoalObjective;
 import theskunk.objectives.Objective;
 import theskunk.objectives.StayAliveObjective;
@@ -51,7 +51,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 	
 	@Override
 	public void think(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
-		EnvironmentState env = PathFinder.environmentFromApo(level, player);
+		Environment env = Environment.envFromApo(level, player);
 		this.state.level = level;
 		this.state.player = player;
 		
@@ -86,30 +86,30 @@ public class TheSkunk extends ApoSkunkmanAI {
 			}
 			
 			// Check if next step would violate a objective
-			for (Objective supirior : this.state.objectives) {
-				if (supirior.equals(this.state.currentObjective)) {
-					// Went down the the current objective
-					// all are satisfied, so move on with this.
-					break;
-				}
-				
-				int oldStep = this.state.stepIndex;
-				this.state.stepIndex++;
-				EnvironmentState env2 = new EnvironmentState(env, 0);
-				player.addMessage("Player pos " + env2.playerPosition());
-				env2.setStep(this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
-				player.addMessage("Step " + this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
-				player.addMessage("Player pos " + env2.playerPosition());
-				player.addMessage("Bombs" + env2.bombTiles());
-				env2 = new EnvironmentState(env2, env.miliTimeForTile());
-				supirior.evaluate(env2, this.state);
-				this.state.stepIndex = oldStep;
-				
-				if (!supirior.isSatisfied()) {
-					player.addMessage(String.format("Would violate"));
-					return;
-				}
-			}
+//			for (Objective supirior : this.state.objectives) {
+//				if (supirior.equals(this.state.currentObjective)) {
+//					// Went down the the current objective
+//					// all are satisfied, so move on with this.
+//					break;
+//				}
+//				
+//				int oldStep = this.state.stepIndex;
+//				this.state.stepIndex++;
+//				EnvironmentState env2 = new EnvironmentState(env, 0);
+//				player.addMessage("Player pos " + env2.playerPosition());
+//				env2.setStep(this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
+//				player.addMessage("Step " + this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
+//				player.addMessage("Player pos " + env2.playerPosition());
+//				player.addMessage("Bombs" + env2.bombTiles());
+//				env2 = new EnvironmentState(env2, env.miliTimeForTile());
+//				supirior.evaluate(env2, this.state);
+//				this.state.stepIndex = oldStep;
+//				
+//				if (!supirior.isSatisfied()) {
+//					player.addMessage(String.format("Would violate"));
+//					return;
+//				}
+//			}
 
 			PathStep step = steps.get(this.state.stepIndex);
 			
