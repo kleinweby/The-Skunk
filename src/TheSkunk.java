@@ -78,28 +78,8 @@ public class TheSkunk extends ApoSkunkmanAI {
 				this.state.currentObjective = null;
 				return;
 			}
-			
-			// Check if next step would violate a objective
-			for (Objective supirior : this.state.objectives) {
-				if (supirior.equals(this.state.currentObjective)) {
-					// Went down the the current objective
-					// all are satisfied, so move on with this.
-					break;
-				}
-				
-				int oldStep = this.state.stepIndex;
-				this.state.stepIndex++;
-				Environment env2 = new Environment(env, this.state.currentObjective.path().steps().get(this.state.stepIndex-1));
-				supirior.evaluate(env2, this.state);
-				this.state.stepIndex = oldStep;
-				
-				if (!supirior.isSatisfied()) {
-					player.addMessage(String.format("Would violate"));
-					return;
-				}
-			}
 
-			Assertable step = steps.get(this.state.stepIndex);
+			Step step = steps.get(this.state.stepIndex);
 			
 			for (Assertion a : step.assertions()) {
 				if (!a.evaulate(level, player)) {
@@ -110,6 +90,31 @@ public class TheSkunk extends ApoSkunkmanAI {
 					this.think(level, player);
 					return;
 				}
+			}
+			
+			// Check if next step would violate a objective
+			{
+				int oldStep = this.state.stepIndex;
+				Environment env2 = new Environment(env, step);
+				this.state.stepIndex++;
+				
+				for (Objective supirior : this.state.objectives) {
+					if (supirior.equals(this.state.currentObjective)) {
+						// Went down the the current objective
+						// all are satisfied, so move on with this.
+						break;
+					}
+					
+					
+					supirior.evaluate(env2, this.state);
+					
+					if (!supirior.isSatisfied()) {
+						player.addMessage(String.format("Would violate"));
+						return;
+					}
+				}
+				
+				this.state.stepIndex = oldStep;
 			}
 			
 			if (step instanceof MoveStep) {

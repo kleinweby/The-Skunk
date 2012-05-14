@@ -315,7 +315,8 @@ public class Environment {
 		if (this._parentState == null)
 			return;
 		
-		bombs = this.bombTiles();
+		// Make a copy to safely modify the original
+		bombs = new HashSet<BombTileState>(this.bombTiles());
 		
 		for (BombTileState bomb : bombs) {
 			// This bomb exploded =/
