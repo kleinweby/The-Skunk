@@ -10,6 +10,7 @@ import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAILevelSkunkman;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
+import theskunk.path.steps.InvalidStepException;
 import theskunk.path.steps.LayBombStep;
 import theskunk.path.steps.MoveStep;
 import theskunk.path.steps.Step;
@@ -149,10 +150,10 @@ public class Environment {
 				TileState tile = this._tiles[this._playerPosition.x][this._playerPosition.y];
 				
 				if (tile.tileType() == TileState.BushTileType || tile.tileType() == TileState.StoneTileType)
-					throw new RuntimeException("Invalid step!");
+					throw new InvalidStepException(step, "not walkable");
 			}
 			else {
-				throw new RuntimeException("Invalid step!");
+				throw new InvalidStepException(step, "out of field");
 			}
 			
 			this._currentTime += this.miliTimeForTile();
