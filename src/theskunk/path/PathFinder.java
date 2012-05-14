@@ -211,19 +211,9 @@ public class PathFinder extends GenericAStar<Environment> {
 			return new Node(env, sourceNode, dest, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.coordinate()));
 		}
-		// We may need to go over an bomb to get safe.
+		// We can not over a bomb (why?!)
 		else if (currentState.tileType() == TileState.BombTileType) {
-			Environment env = srcEnv;
-			
-			{
-				Step step = new MoveStep(direction);
-				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
-			
-				env = new Environment(env, step);
-			}
-			
-			return new Node(env, sourceNode, dest, (int)(srcEnv.miliTimeForTile() * 1.2 /* risky */), 
-					this.estimatedCost(env, dest));
+			return null;
 		}
 		else if (currentState.tileType() == TileState.StoneTileType) {
 			// We can not go here
