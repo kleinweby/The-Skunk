@@ -61,8 +61,8 @@ public class TheSkunk extends ApoSkunkmanAI {
 					this.state.reset();
 					this.state.currentObjective = o;
 					player.addMessage(String.format("Changed objective to %s", o.toString()));
-					break;
 				}
+				break;
 			}
 			else if (o == this.state.currentObjective) {
 				player.addMessage("Cleared objective...");

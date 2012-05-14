@@ -25,9 +25,9 @@ public class StayAliveObjective implements Objective {
 	@Override
 	public int compareTo(Objective otherObject) {
 		if (this.priority() < otherObject.priority())
-			return 1;
-		else if (this.priority() > otherObject.priority())
 			return -1;
+		else if (this.priority() > otherObject.priority())
+			return 1;
 		return 0;
 	}
 
