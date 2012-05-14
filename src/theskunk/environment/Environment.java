@@ -10,10 +10,10 @@ import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAILevelSkunkman;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-import theskunk.PathLayBombStep;
-import theskunk.PathMoveStep;
-import theskunk.PathStep;
-import theskunk.PathWaitStep;
+import theskunk.path.steps.LayBombStep;
+import theskunk.path.steps.MoveStep;
+import theskunk.path.steps.Step;
+import theskunk.path.steps.WaitStep;
 
 
 class TileAlreadyChanged extends RuntimeException {
@@ -24,7 +24,7 @@ public class Environment {
 	protected Environment _parentState;
 	protected TileState _tiles[][];
 	protected HashSet<BombTileState> _bombTiles;
-	protected PathStep _step;
+	protected Step _step;
 	protected int _miliTimeForTile;
 	protected int _skunkWidth;
 	protected int _maxSkunks;
@@ -116,17 +116,17 @@ public class Environment {
 		}
 	}
 	
-	public Environment(Environment parent, PathStep step) {
+	public Environment(Environment parent, Step step) {
 		this(parent);
 		
 		// Incoperate the step
-		if (step instanceof PathLayBombStep) {
+		if (step instanceof LayBombStep) {
 			// Set the tile to be a bomb
 			this.updateTileState(new BombTileState(this.playerPosition(), this.skunkWidth()));
 			this._currentTime += 20; // TODO: real thing
 		}
-		else if (step instanceof PathMoveStep) {
-			PathMoveStep move = (PathMoveStep)step;
+		else if (step instanceof MoveStep) {
+			MoveStep move = (MoveStep)step;
 			
 			switch (move.direction()) {
 			case Up:
@@ -157,8 +157,8 @@ public class Environment {
 			
 			this._currentTime += this.miliTimeForTile();
 		}
-		else if (step instanceof PathWaitStep) {
-			PathWaitStep wait = (PathWaitStep)step;
+		else if (step instanceof WaitStep) {
+			WaitStep wait = (WaitStep)step;
 			
 			this._currentTime += wait.duration();
 		}
@@ -208,8 +208,8 @@ public class Environment {
 	
 	// Returns the steps of this env object
 	// Does now go up like the others
-	public List<PathStep> steps() {
-		LinkedList<PathStep> steps = new LinkedList<PathStep>();
+	public List<Step> steps() {
+		LinkedList<Step> steps = new LinkedList<Step>();
 		
 		Environment env = this;
 		

@@ -1,6 +1,7 @@
-package theskunk;
+package theskunk.path.steps;
 
-public class PathMoveStep extends PathStep {
+
+public class MoveStep extends Step {
 	public enum Direction {
 		Down,
 		Up,
@@ -10,7 +11,7 @@ public class PathMoveStep extends PathStep {
 	
 	private Direction _direction;
 	
-	protected PathMoveStep(Direction direction) {
+	public MoveStep(Direction direction) {
 		this._direction = direction;
 	}
 	
@@ -20,6 +21,6 @@ public class PathMoveStep extends PathStep {
 	
 	@Override
 	public String toString() {
-		return "Move " + this._direction;
+		return String.format("Move(direction=%s)", this._direction);
 	}
 }

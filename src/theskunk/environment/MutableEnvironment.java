@@ -2,7 +2,7 @@ package theskunk.environment;
 
 import java.awt.Point;
 
-import theskunk.PathStep;
+import theskunk.path.steps.Step;
 
 public class MutableEnvironment extends Environment {
 
@@ -14,7 +14,7 @@ public class MutableEnvironment extends Environment {
 		super(parent);
 	}
 	
-	public MutableEnvironment(Environment parent, PathStep step) {
+	public MutableEnvironment(Environment parent, Step step) {
 		super(parent, step);
 	}
 

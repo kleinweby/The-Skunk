@@ -1,9 +1,9 @@
 package theskunk.objectives;
 
 import theskunk.ExecutionState;
-import theskunk.Path;
-import theskunk.PathFinder;
 import theskunk.environment.Environment;
+import theskunk.path.Path;
+import theskunk.path.PathFinder;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 
 public class FindGoalObjective implements Objective {

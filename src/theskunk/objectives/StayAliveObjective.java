@@ -5,16 +5,16 @@ import java.util.HashSet;
 import java.util.List;
 
 import theskunk.ExecutionState;
-import theskunk.Path;
-import theskunk.PathBushAssertion;
-import theskunk.PathFinder;
-import theskunk.PathLayBombStep;
-import theskunk.PathMoveStep;
-import theskunk.PathStep;
-import theskunk.PathWaitStep;
-import theskunk.PathFinder.Type;
 import theskunk.environment.BombTileState;
 import theskunk.environment.Environment;
+import theskunk.path.Path;
+import theskunk.path.PathFinder;
+import theskunk.path.PathFinder.Type;
+import theskunk.path.assertions.PathBushAssertion;
+import theskunk.path.steps.LayBombStep;
+import theskunk.path.steps.MoveStep;
+import theskunk.path.steps.Step;
+import theskunk.path.steps.WaitStep;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
@@ -33,7 +33,7 @@ public class StayAliveObjective implements Objective {
 
 	@Override
 	public void evaluate(Environment env, ExecutionState state) {	
-		List<PathStep> remainingSteps = null;
+		List<Step> remainingSteps = null;
 		
 		if (state.currentObjective != null) {
 			Path p = state.currentObjective.path();
@@ -101,12 +101,12 @@ public class StayAliveObjective implements Objective {
 		return found;
 	}
 	
-	private boolean isThreatendAlongPath(Environment env, List<PathStep> pathSteps) {
+	private boolean isThreatendAlongPath(Environment env, List<Step> pathSteps) {
 		
 		if (pathSteps == null)
 			return isBombThreatinging(env);
 		
-		for (PathStep step : pathSteps) {
+		for (Step step : pathSteps) {
 			if (!env.isPlayerAlive())
 				return true;
 			

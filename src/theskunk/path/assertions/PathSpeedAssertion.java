@@ -1,9 +1,9 @@
-package theskunk;
+package theskunk.path.assertions;
 
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-public class PathSpeedAssertion extends PathAssertion {
+public class PathSpeedAssertion implements Assertion {
 	private int _expectedSpeed;
 	
 	public PathSpeedAssertion(int speed) {
