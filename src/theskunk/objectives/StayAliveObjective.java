@@ -1,7 +1,6 @@
 package theskunk.objectives;
 
 import java.awt.Point;
-import java.util.HashSet;
 import java.util.List;
 
 import theskunk.ExecutionState;
@@ -10,14 +9,8 @@ import theskunk.environment.Environment;
 import theskunk.path.Path;
 import theskunk.path.PathFinder;
 import theskunk.path.PathFinder.Type;
-import theskunk.path.assertions.PathBushAssertion;
 import theskunk.path.steps.InvalidStepException;
-import theskunk.path.steps.LayBombStep;
-import theskunk.path.steps.MoveStep;
 import theskunk.path.steps.Step;
-import theskunk.path.steps.WaitStep;
-import apoSkunkman.ai.ApoSkunkmanAILevel;
-import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
 public class StayAliveObjective implements Objective {
 	private Path _path;
