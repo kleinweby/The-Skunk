@@ -193,6 +193,9 @@ public abstract class GenericAStar<T> {
 		
 		Node currNode = this.openNodes.get(0);
 		
+		if (!currNode.reachedGoal())
+			return null;
+		
 		while (currNode != null) {
 			list.add(currNode);
 			currNode = currNode.prevNode();

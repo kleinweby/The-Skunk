@@ -37,12 +37,14 @@ public class Finder extends GenericAStar<Environment> {
 	private int _stepCountSubroutines;
 	private long _timeConsumed;
 	private long _timeConsumedInSubFinders;
+	private Environment _startEnv;
 	
 	public Finder(Environment env, Type type, int objX, int objY) {		
 		this._objX = objX;
 		this._objY = objY;
 		this._type = type;
 		this._startPoint = env.playerPosition();
+		this._startEnv = env;
 		
 		this._layBombs = true;
 		
@@ -263,6 +265,9 @@ public class Finder extends GenericAStar<Environment> {
 		this._timeConsumed = System.currentTimeMillis() - startTime;
 		
 		List<Node> nodePath = this.nodePath();
+		
+		if (nodePath == null)
+			return new Path(new ArrayList<Step>(), new ArrayList<Assertion>(), this._startEnv, this._startPoint, this._startPoint);
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
 		
