@@ -10,6 +10,7 @@ import theskunk.objectives.StayAliveObjective;
 import theskunk.path.Path;
 import theskunk.path.assertions.Assertable;
 import theskunk.path.assertions.Assertion;
+import theskunk.path.steps.InvalidStepException;
 import theskunk.path.steps.LayBombStep;
 import theskunk.path.steps.MoveStep;
 import theskunk.path.steps.Step;
@@ -48,7 +49,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 		Environment env = Environment.envFromApo(level, player);
 		this.state.level = level;
 		this.state.player = player;
-		
+
 		for (Objective o : this.state.objectives) {
 			// Evaluate the objective
 			o.evaluate(env, this.state);
@@ -91,27 +92,38 @@ public class TheSkunk extends ApoSkunkmanAI {
 			
 			// Check if next step would violate a objective
 			{
-				int oldStep = this.state.stepIndex;
-				Environment env2 = new Environment(env, step);
-				this.state.stepIndex++;
-				
-				for (Objective supirior : this.state.objectives) {
-					if (supirior.equals(this.state.currentObjective)) {
-						// Went down the the current objective
-						// all are satisfied, so move on with this.
-						break;
+				boolean wouldViolate = false;
+				try {
+					int oldStep = this.state.stepIndex;
+					Environment env2 = new Environment(env, step);
+					this.state.stepIndex++;
+
+					for (Objective supirior : this.state.objectives) {
+						if (supirior.equals(this.state.currentObjective)) {
+							// Went down the the current objective
+							// all are satisfied, so move on with this.
+							break;
+						}
+
+						supirior.evaluate(env2, this.state);
+
+						if (!supirior.isSatisfied()) {
+							wouldViolate = true;
+							break;
+						}
 					}
-					
-					
-					supirior.evaluate(env2, this.state);
-					
-					if (!supirior.isSatisfied()) {
-						player.addMessage(String.format("Would violate"));
-						return;
-					}
+
+					this.state.stepIndex = oldStep;
+				}
+				catch (InvalidStepException e)
+				{
+					wouldViolate = true;
 				}
 				
-				this.state.stepIndex = oldStep;
+				if (wouldViolate) {
+					player.addMessage(String.format("Would violate"));
+					return;
+				}
 			}
 			
 			if (step instanceof MoveStep) {

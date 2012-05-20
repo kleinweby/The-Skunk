@@ -63,28 +63,28 @@ public class Finder extends GenericAStar<Environment> {
 		if (p.x >= 1) {
 			Node n = nodeFromTo(sourceNode, Direction.Left);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
 		if (p.x + 1 < Environment.FIELD_WIDTH) {
 			Node n = nodeFromTo(sourceNode, Direction.Right);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
 		if (p.y >= 1) {
 			Node n = nodeFromTo(sourceNode, Direction.Up);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
 		if (p.y + 1 < Environment.FIELD_HEIGHT) {
 			Node n = nodeFromTo(sourceNode, Direction.Down);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
