@@ -36,7 +36,7 @@ public class StayAliveObjective implements Objective {
 			}
 		}
 		
-		if (this.isBombThreatinging(env) && this.isThreatendAlongPath(env, remainingSteps)) {
+		if (this.isThreatendAlongPath(env, remainingSteps)) {
 			Finder finder = new Finder(env, Type.AvoidBomb, 0, 0);
 			
 			this._isSatisfied = false;
@@ -67,7 +67,7 @@ public class StayAliveObjective implements Objective {
 	private boolean isBombThreatinging(Environment env) {
 		Point p = env.playerPosition();
 		boolean found = false;
-		
+				
 		for (BombTileState bomb : env.bombTiles()) {
 			Point b = bomb.coordinate();
 			
@@ -95,7 +95,7 @@ public class StayAliveObjective implements Objective {
 		if (pathSteps == null)
 			return isBombThreatinging(env);
 		
-		for (Step step : pathSteps) {
+		for (Step step : pathSteps) {	
 			if (!env.isPlayerAlive())
 				return true;
 			

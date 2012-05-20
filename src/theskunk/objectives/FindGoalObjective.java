@@ -61,6 +61,8 @@ public class FindGoalObjective implements Objective {
 
 	@Override
 	public String toString() {
+		if (this._path != null)
+			return String.format("FindGoal(isSatisfied=%b, steps=%d)", this._isSatisfied, this._path.steps().size());
 		return String.format("FindGoal(isSatisfied=%b)", this._isSatisfied);
 	}
 }
