@@ -1,12 +1,13 @@
-package theskunk;
+package theskunk.path.assertions;
 
 import java.awt.Point;
+
 
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-public class PathBushAssertion extends PathAssertion {
+public class PathBushAssertion implements Assertion {
 	private boolean _shouldBeBush;
 	private Point _location;
 	
