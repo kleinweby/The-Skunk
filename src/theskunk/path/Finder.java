@@ -1,4 +1,4 @@
-package theskunk;
+package theskunk.path;
 import java.awt.Point;
 import java.sql.Time;
 import java.util.ArrayList;
@@ -6,17 +6,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import theskunk.PathMoveStep.Direction;
+import theskunk.GenericAStar;
 import theskunk.environment.BombTileState;
-import theskunk.environment.EnvironmentState;
+import theskunk.environment.Environment;
 import theskunk.environment.TileState;
+import theskunk.path.assertions.Assertion;
+import theskunk.path.assertions.PathBushAssertion;
+import theskunk.path.assertions.PathPlayerPositionAssertion;
+import theskunk.path.assertions.PathSkunkWidthAssertion;
+import theskunk.path.assertions.PathSpeedAssertion;
+import theskunk.path.steps.LayBombStep;
+import theskunk.path.steps.MoveStep;
+import theskunk.path.steps.Step;
+import theskunk.path.steps.WaitStep;
+import theskunk.path.steps.MoveStep.Direction;
 
-import apoSkunkman.ai.ApoSkunkmanAIConstants;
-import apoSkunkman.ai.ApoSkunkmanAILevel;
-import apoSkunkman.ai.ApoSkunkmanAILevelGoodie;
-import apoSkunkman.ai.ApoSkunkmanAIPlayer;
-
-public class PathFinder extends GenericAStar<EnvironmentState> {
+public class Finder extends GenericAStar<Environment> {
 	public enum Type {
 		FindGoal,
 		AvoidBomb
@@ -32,53 +37,14 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	private int _stepCountSubroutines;
 	private long _timeConsumed;
 	private long _timeConsumedInSubFinders;
+	private Environment _startEnv;
 	
-	public static EnvironmentState environmentFromApo(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
-		EnvironmentState startState = new EnvironmentState(null, level.getStartTime() - level.getTime());
-		
-		// Populate this state
-		byte byteLevel[][] = level.getLevelAsByte();
-		
-		for (int x = 0; x < byteLevel.length; x++) {
-			for (int y = 0; y < byteLevel[x].length; y++) {
-				TileState tileState = null;
-				Point p = new Point(x,y);
-				
-				switch (byteLevel[y][x]) {
-				case ApoSkunkmanAIConstants.LEVEL_FREE:
-				case ApoSkunkmanAIConstants.LEVEL_SKUNKMAN:
-					tileState = new TileState(TileState.FreeTileType, p);
-					break;
-				case ApoSkunkmanAIConstants.LEVEL_BUSH:
-					tileState = new TileState(TileState.BushTileType, p);
-					break;
-				case ApoSkunkmanAIConstants.LEVEL_GOODIE:
-					tileState = new TileState(TileState.GoodieTileType, p);
-					break;
-				case ApoSkunkmanAIConstants.LEVEL_STONE:
-					tileState = new TileState(TileState.StoneTileType, p);
-					break;
-				default:
-					continue;
-				}
-				
-				startState.updateTileState(tileState);
-			}
-		}
-		
-		startState.setMaxSkunks(player.getMaxSkunkman());
-		startState.setMiliTimeForTile(player.getMSForOneTile());
-		startState.setSkunkWidth(player.getSkunkWidth());
-		startState.setPlayerPosition(new Point(player.getPlayerX(), player.getPlayerY()));
-		
-		return startState;
-	}
-	
-	public PathFinder(EnvironmentState env, Type type, int objX, int objY) {		
+	public Finder(Environment env, Type type, int objX, int objY) {		
 		this._objX = objX;
 		this._objY = objY;
 		this._type = type;
 		this._startPoint = env.playerPosition();
+		this._startEnv = env;
 		
 		this._layBombs = true;
 		
@@ -97,28 +63,28 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		if (p.x >= 1) {
 			Node n = nodeFromTo(sourceNode, Direction.Left);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
-		if (p.x + 1 < EnvironmentState.FIELD_WIDTH) {
+		if (p.x + 1 < Environment.FIELD_WIDTH) {
 			Node n = nodeFromTo(sourceNode, Direction.Right);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
 		if (p.y >= 1) {
 			Node n = nodeFromTo(sourceNode, Direction.Up);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
-		if (p.y + 1 < EnvironmentState.FIELD_HEIGHT) {
+		if (p.y + 1 < Environment.FIELD_HEIGHT) {
 			Node n = nodeFromTo(sourceNode, Direction.Down);
 			
-			if (n != null)
+			if (n != null && n.nodeState().isPlayerAlive())
 				nodes.add(n);
 		}
 		
@@ -128,10 +94,6 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 	protected Node nodeFromTo(Node sourceNode, Direction direction) {
 		assert sourceNode != null;
 		Point dest = new Point(sourceNode.coordinate());
-		// TODO: The timing here is somwhat wrong
-		// we're advancing the environment for the time the steps takes
-		// and do then the step. Should be the other way around, but
-		// quick try made the timing even worse xD
 		
 		switch (direction) {
 		case Down:
@@ -154,38 +116,46 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			return null;
 		}
 		
-		EnvironmentState srcEnv = sourceNode.nodeState();
+		Environment srcEnv = sourceNode.nodeState();
 		TileState currentState = srcEnv.tileStateAt(dest.x, dest.y);
-		
+				
 		// Perfect =) we can simply go there
 		if (currentState.tileType() == TileState.FreeTileType) {
-			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
+			Environment env = srcEnv;
 			
-			env.setStep(new PathMoveStep(direction));
+			{
+				Step step = new MoveStep(direction);
+				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
+			
+				env = new Environment(env, step);
+			}
 			
 			return new Node(env, sourceNode, dest, srcEnv.miliTimeForTile(), 
 					this.estimatedCost(env, dest));
 		}
 		else if (currentState.tileType() == TileState.GoodieTileType) {
-			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
+			Environment env = srcEnv;
 			
 			// Goodies will not be handled separatly in the sense of cost, because
 			// it is the path finders role to do so (A bad goodie may be good
 			// for the solution)
+						
+			{
+				Step step = new MoveStep(direction);
+				step.addAssertion(new PathPlayerPositionAssertion(env.playerPosition()));
 			
-			// TODO: change env to reflect goodie
-			
-			env.setStep(new PathMoveStep(direction));
+				env = new Environment(env, step);
+			}
 			
 			return new Node(env, sourceNode, dest, srcEnv.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.coordinate()));
 		}
 		// Do not blow up bushes when we're currently running away from an bomb
 		else if (currentState.tileType() == TileState.BushTileType && this._layBombs) {
-			EnvironmentState env = new EnvironmentState(srcEnv, srcEnv.miliTimeForTile());
+			Environment env = srcEnv;
 			
 			{
-				PathLayBombStep step = new PathLayBombStep();
+				LayBombStep step = new LayBombStep();
 				// We dont need to blow something up that is not there
 				step.addAssertion(new PathBushAssertion(dest, true));
 				// We have to make sure we are where we're thinking we are ;)
@@ -194,17 +164,12 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				step.addAssertion(new PathSkunkWidthAssertion(env.skunkWidth()));
 				step.addAssertion(new PathSpeedAssertion(env.miliTimeForTile()));
 				// Will insert a bomb tile
-				env.setStep(step);
+				env = new Environment(env, step);
 			}
 			
 			// Find escape route
-			{
-				// Advance the time because we did a step
-				// TODO: we is this not needed and actually
-				// makes the wait time to short?
-				//env = new EnvironmentState(env, srcEnv.miliTimeForTile());
-				
-				PathFinder finder = new PathFinder(env, Type.AvoidBomb, sourceNode.coordinate().x, sourceNode.coordinate().y);
+			{	
+				Finder finder = new Finder(env, Type.AvoidBomb, 0,0);
 				
 				// Solve the escape.
 				Path path = finder.solution();
@@ -224,21 +189,14 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 				}
 				
 				if (remainingBombTime > 0) {
-					// TODO: because of the wrong timing mentioned above
-					// the last env of an path already contains an step
-					// so we need an env shadow copy here, with
-					// no time advance
-					env = new EnvironmentState(env, 0);
-					env.setStep(new PathWaitStep(remainingBombTime));
-					// New env here to work with
-					env = new EnvironmentState(env, remainingBombTime);
+					env = new Environment(env, new WaitStep(remainingBombTime));
 				}
 				
 				// There should not be a bomb now
 				assert !(env.tileStateAt(sourceNode.coordinate().x, sourceNode.coordinate().y) instanceof BombTileState);
 				
 				// Ok bomb is now exploded, get back to final destination
-				finder = new PathFinder(env, Type.FindGoal, dest.x, dest.y);
+				finder = new Finder(env, Type.FindGoal, dest.x, dest.y);
 				// There is an free path, which is guranteed
 				// to be least expensive. So save the computing
 				// time and don't simulate bombs
@@ -255,8 +213,8 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 			return new Node(env, sourceNode, dest, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
 					this.estimatedCost(env, sourceNode.coordinate()));
 		}
+		// We can not over a bomb (why?!)
 		else if (currentState.tileType() == TileState.BombTileType) {
-			// Well better not go here
 			return null;
 		}
 		else if (currentState.tileType() == TileState.StoneTileType) {
@@ -267,7 +225,7 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		return null;
 	}
 	
-	protected int estimatedCost(EnvironmentState env, Point p) {
+	protected int estimatedCost(Environment env, Point p) {
 		if (this._type == Type.FindGoal)
 			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
 		else if (this._type == Type.AvoidBomb) {
@@ -308,9 +266,12 @@ public class PathFinder extends GenericAStar<EnvironmentState> {
 		
 		List<Node> nodePath = this.nodePath();
 		
+		if (nodePath == null)
+			return new Path(new ArrayList<Step>(), new ArrayList<Assertion>(), this._startEnv, this._startPoint, this._startPoint);
+		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
 		
-		return new Path(lastNode.nodeState().steps(), new ArrayList<PathAssertion>(), lastNode.nodeState, this._startPoint, lastNode.coordinate());
+		return new Path(lastNode.nodeState().steps(), new ArrayList<Assertion>(), lastNode.nodeState, this._startPoint, lastNode.coordinate());
 	}
 	
 	public int usedSteps() {

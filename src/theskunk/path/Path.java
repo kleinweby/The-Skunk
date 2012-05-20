@@ -1,4 +1,4 @@
-package theskunk;
+package theskunk.path;
 
 import java.awt.Point;
 import java.util.List;
@@ -6,16 +6,18 @@ import java.util.List;
 import apoSkunkman.ai.ApoSkunkmanAILevel;
 import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 
-import theskunk.environment.EnvironmentState;
+import theskunk.environment.Environment;
+import theskunk.path.assertions.Assertion;
+import theskunk.path.steps.Step;
 
 public class Path {
-	private List<PathStep> _steps;
-	private List<PathAssertion> _assertions;
-	private EnvironmentState _finalState;
+	private List<Step> _steps;
+	private List<Assertion> _assertions;
+	private Environment _finalState;
 	private Point _finalPlayerPosition;
 	private Point _startPlayerPosition;
 	
-	protected Path(List<PathStep> steps, List<PathAssertion> assertions, EnvironmentState finalState, Point startPlayerPosition, Point finalPlayerPosition) {
+	public Path(List<Step> steps, List<Assertion> assertions, Environment finalState, Point startPlayerPosition, Point finalPlayerPosition) {
 		this._steps = steps;
 		this._finalState = finalState;
 		this._finalPlayerPosition = finalPlayerPosition;
@@ -23,11 +25,11 @@ public class Path {
 		this._assertions = assertions;
 	}
 	
-	public List<PathStep> steps() {
+	public List<Step> steps() {
 		return this._steps;
 	}
 	
-	public EnvironmentState finalState() {
+	public Environment finalState() {
 		return this._finalState;
 	}
 	
@@ -39,13 +41,13 @@ public class Path {
 		return this._startPlayerPosition;
 	}
 	
-	public List<PathAssertion> assertions() {
+	public List<Assertion> assertions() {
 		return this._assertions;
 	}
 
 	public boolean assertAgainstApo(ApoSkunkmanAILevel level,
 			ApoSkunkmanAIPlayer player) {
-		for (PathAssertion a : this._assertions) {
+		for (Assertion a : this._assertions) {
 			if (!a.evaulate(level, player)) {
 				player.addMessage(a + "failed.");
 				return false;

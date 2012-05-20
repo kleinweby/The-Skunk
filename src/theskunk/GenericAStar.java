@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-abstract class GenericAStar<T> {
+public abstract class GenericAStar<T> {
 	static int nodeIDFromXY(int x, int y) {
 		assert x <= 0xFF;
 		assert y <= 0xFF;
@@ -14,7 +14,7 @@ abstract class GenericAStar<T> {
 		return (x << 8) | (y & 0xFF);
 	}
 	
-	protected class Node implements Comparable<Node> {
+	public class Node implements Comparable<Node> {
 		// The cost that is needed to get here
 		int usedCost;
 		// The estimated remaining cost
@@ -25,7 +25,7 @@ abstract class GenericAStar<T> {
 		int nodeID;
 		Point _coordinate;
 		// The State
-		T nodeState;
+		public T nodeState;
 		
 		public Node(T state, Node prevNode, Point coordinate, int cost, int estimatedRemainingCost) {
 			assert state != null;
@@ -192,6 +192,9 @@ abstract class GenericAStar<T> {
 		List<Node> list = new LinkedList<Node>();
 		
 		Node currNode = this.openNodes.get(0);
+		
+		if (!currNode.reachedGoal())
+			return null;
 		
 		while (currNode != null) {
 			list.add(currNode);
