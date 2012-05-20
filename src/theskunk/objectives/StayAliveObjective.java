@@ -64,11 +64,6 @@ public class StayAliveObjective implements Objective {
 		return this._path;
 	}
 
-	@Override
-	public void pathFailed() {
-		this._path = null;
-	}
-
 	private boolean isBombThreatinging(Environment env) {
 		Point p = env.playerPosition();
 		boolean found = false;
@@ -119,5 +114,15 @@ public class StayAliveObjective implements Objective {
 		}
 		
 		return isBombThreatinging(env);
+	}
+
+	@Override
+	public void becomesActive() {
+		// Not interested
+	}
+
+	@Override
+	public void resigns() {
+		this._path = null;
 	}
 }

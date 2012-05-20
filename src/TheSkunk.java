@@ -58,15 +58,13 @@ public class TheSkunk extends ApoSkunkmanAI {
 			if (!o.isSatisfied()) {
 				if (o != this.state.currentObjective) {
 					this.state.reset();
-					this.state.currentObjective = o;
-					player.addMessage(String.format("Changed objective to %s", o.toString()));
+					this.state.changeObjective(o);
 					break;
 				}
 				break;
 			}
 			else if (o == this.state.currentObjective) {
-				player.addMessage("Cleared objective...");
-				this.state.currentObjective = null;
+				this.state.changeObjective(o);
 			}
 		}
 		
@@ -74,8 +72,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 			List<Step> steps = this.state.currentObjective.path().steps();
 			
 			if (this.state.stepIndex >= steps.size()) {
-				player.addMessage("Cleared objective...");
-				this.state.currentObjective = null;
+				this.state.changeObjective(null);
 				return;
 			}
 

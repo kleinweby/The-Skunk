@@ -50,8 +50,17 @@ public class FindGoalObjective implements Objective {
 	}
 
 	@Override
-	public void pathFailed() {
+	public void becomesActive() {
+		// Not interested
+	}
+
+	@Override
+	public void resigns() {
 		this._path = null;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("FindGoal(isSatisfied=%b)", this._isSatisfied);
+	}
 }

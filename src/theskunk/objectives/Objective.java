@@ -10,6 +10,6 @@ public interface Objective extends Comparable<Objective> {
 	public int priority();
 	public Path path();
 	
-	// Feedback
-	public void pathFailed();
+	public void becomesActive();
+	public void resigns();
 }
