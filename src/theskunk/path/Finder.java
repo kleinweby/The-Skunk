@@ -24,7 +24,8 @@ import theskunk.path.steps.MoveStep.Direction;
 public class Finder extends GenericAStar<Environment> {
 	public enum Type {
 		FindGoal,
-		AvoidBomb
+		AvoidBomb,
+		BombAway
 	}
 	
 	private int _objX;
@@ -226,7 +227,7 @@ public class Finder extends GenericAStar<Environment> {
 	}
 	
 	protected int estimatedCost(Environment env, Point p) {
-		if (this._type == Type.FindGoal)
+		if (this._type == Type.FindGoal || this._type == Type.BombAway)
 			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
 		else if (this._type == Type.AvoidBomb) {
 			int estimatedCost = 0;
@@ -270,8 +271,16 @@ public class Finder extends GenericAStar<Environment> {
 			return new Path(new ArrayList<Step>(), new ArrayList<Assertion>(), this._startEnv, this._startPoint, this._startPoint);
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
+		Environment env = lastNode.nodeState;
 		
-		return new Path(lastNode.nodeState().steps(), new ArrayList<Assertion>(), lastNode.nodeState, this._startPoint, lastNode.coordinate());
+		if (this._type == Type.BombAway) {
+			env = new Environment(env, new LayBombStep());
+			
+			Finder f = new Finder(env, Type.AvoidBomb, env.playerPosition().x, env.playerPosition().y);
+			env = f.solution().finalState();
+		}
+		
+		return new Path(env.steps(), new ArrayList<Assertion>(), env, this._startPoint, env.playerPosition());
 	}
 	
 	public int usedSteps() {

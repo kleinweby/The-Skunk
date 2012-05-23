@@ -1,10 +1,22 @@
 package theskunk.objectives;
 
+import apoSkunkman.ai.ApoSkunkmanAIConstants;
+import apoSkunkman.ai.ApoSkunkmanAIEnemy;
 import theskunk.ExecutionState;
 import theskunk.environment.Environment;
+import theskunk.path.Finder;
 import theskunk.path.Path;
 
 public class KillObjective implements Objective {
+	private boolean _isSatisfied;
+	// Lock on one player and try killing him
+	// till succeeded or died doing so
+	private int _currentPursuingPlayer;
+	private Path _path;
+	
+	public KillObjective() {
+		this._currentPursuingPlayer = -1;
+	}
 	
 	@Override
 	public int compareTo(Objective otherObject) {
@@ -17,37 +29,67 @@ public class KillObjective implements Objective {
 
 	@Override
 	public void evaluate(Environment env, ExecutionState state) {
-		
+		ApoSkunkmanAIEnemy enemy = this.chooseEnemy(env, state);
+
+		if (enemy != null) {
+			Finder finder = new Finder(env, 
+					Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
+			
+			this._path = finder.solution();
+		}
+		else {
+			this._isSatisfied = true;
+		}
 	}
 
+	private ApoSkunkmanAIEnemy chooseEnemy(Environment env, ExecutionState state) {
+		if (state.level.getEnemies().length == 0 || state.level.getType() == ApoSkunkmanAIConstants.LEVEL_TYPE_GOAL_X)
+			return null;
+		
+		ApoSkunkmanAIEnemy enemy = state.level.getEnemies()[0];
+		
+		for (ApoSkunkmanAIEnemy e : state.level.getEnemies()) {
+			// Found the one we're currently pursuing
+			if (e.getPlayer() == this._currentPursuingPlayer) {
+				enemy = e;
+				break;
+			}
+			// We don't have a victem yet, use the one nearest to us.
+			else if (this._currentPursuingPlayer < 0) {
+				int currentDistance = (int) (Math.pow(enemy.getX() - env.playerPosition().x, 2) + Math.pow(enemy.getY() - env.playerPosition().y, 2));
+				int distance = (int) (Math.pow(e.getX() - env.playerPosition().x, 2) + Math.pow(e.getY() - env.playerPosition().y, 2));
+				
+				if (distance < currentDistance) {
+					enemy = e;
+				}
+			}
+		}
+		
+		this._currentPursuingPlayer = enemy.getPlayer();
+		
+		return enemy;
+	}
+	
 	@Override
 	public boolean isSatisfied() {
-		// TODO Auto-generated method stub
-		return false;
+		return this._isSatisfied;
 	}
 
 	@Override
 	public int priority() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public Path path() {
-		// TODO Auto-generated method stub
-		return null;
+		return this._path;
 	}
 
 	@Override
 	public void becomesActive() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void resigns() {
-		// TODO Auto-generated method stub
-
 	}
-
 }
