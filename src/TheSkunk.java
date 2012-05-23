@@ -5,6 +5,7 @@ import java.util.List;
 import theskunk.ExecutionState;
 import theskunk.environment.Environment;
 import theskunk.objectives.FindGoalObjective;
+import theskunk.objectives.KillObjective;
 import theskunk.objectives.Objective;
 import theskunk.objectives.StayAliveObjective;
 import theskunk.path.Path;
@@ -42,6 +43,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 				
 		this.state.objectives.add(new FindGoalObjective());
 		this.state.objectives.add(new StayAliveObjective());
+		this.state.objectives.add(new KillObjective());
 	}
 	
 	@Override
