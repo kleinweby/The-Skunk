@@ -24,6 +24,7 @@ import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 public class TheSkunk extends ApoSkunkmanAI {
 	
 	private ExecutionState state;
+	private int recursiveThinkCounter;
 	
 	@Override
 	public String getPlayerName() {
@@ -48,7 +49,20 @@ public class TheSkunk extends ApoSkunkmanAI {
 	
 	@Override
 	public void think(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
+		this.recursiveThinkCounter = 0;
+		this.doThinking(level, player);
+	}
+	
+	private void doThinking(ApoSkunkmanAILevel level, ApoSkunkmanAIPlayer player) {
+		this.recursiveThinkCounter++;
+		
+		if (this.recursiveThinkCounter > 10) {
+			player.addMessage("Abort thinking after 10 restarts. We don't seem to find a solution");
+			return;
+		}
+		
 		Environment env = Environment.envFromApo(level, player);
+		
 		this.state.level = level;
 		this.state.player = player;
 
@@ -87,7 +101,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 					// Current situation does not hold the path anymore
 					this.pathFailed();
 					// Start new
-					this.think(level, player);
+					this.doThinking(level, player);
 					return;
 				}
 			}
@@ -111,6 +125,7 @@ public class TheSkunk extends ApoSkunkmanAI {
 
 						if (!supirior.isSatisfied()) {
 							wouldViolate = true;
+							player.addMessage(String.format("Would violate" + supirior));
 							break;
 						}
 					}
@@ -119,11 +134,15 @@ public class TheSkunk extends ApoSkunkmanAI {
 				}
 				catch (InvalidStepException e)
 				{
+					player.addMessage(String.format("Would violate" + e));
 					wouldViolate = true;
 				}
 				
 				if (wouldViolate) {
 					player.addMessage(String.format("Would violate"));
+					// Current situation does not hold the path anymore
+					this.pathFailed();
+					
 					return;
 				}
 			}
@@ -154,7 +173,8 @@ public class TheSkunk extends ApoSkunkmanAI {
 					this.pathFailed();
 					// Start new
 					player.addMessage("Planned laying down skunk. Not able to. Restart thinking...");
-					this.think(level, player);
+					this.doThinking(level, player);
+					return;
 				}
 				player.laySkunkman();
 				

@@ -1,11 +1,16 @@
 package theskunk.objectives;
 
+import java.util.List;
+
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAIEnemy;
+import apoSkunkman.ai.ApoSkunkmanAILevel;
+import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 import theskunk.ExecutionState;
 import theskunk.environment.Environment;
 import theskunk.path.Finder;
 import theskunk.path.Path;
+import theskunk.path.assertions.Assertion;
 
 public class KillObjective implements Objective {
 	private boolean _isSatisfied;
@@ -32,10 +37,12 @@ public class KillObjective implements Objective {
 		ApoSkunkmanAIEnemy enemy = this.chooseEnemy(env, state);
 
 		if (enemy != null) {
-			Finder finder = new Finder(env, 
-					Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
-			
-			this._path = finder.solution();
+			if (this._path == null || !this._path.assertAgainstApo(state.level, state.player)) {
+				Finder finder = new Finder(env, 
+						Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
+				
+				this._path = finder.solution();
+			}
 		}
 		else {
 			this._isSatisfied = true;
@@ -91,5 +98,6 @@ public class KillObjective implements Objective {
 
 	@Override
 	public void resigns() {
+		this._path = null;
 	}
 }

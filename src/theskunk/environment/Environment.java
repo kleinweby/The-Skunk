@@ -150,7 +150,7 @@ public class Environment {
 				TileState tile = this._tiles[this._playerPosition.x][this._playerPosition.y];
 				
 				if (tile.tileType() == TileState.BushTileType || tile.tileType() == TileState.StoneTileType)
-					throw new InvalidStepException(step, "not walkable");
+					throw new InvalidStepException(step, "not walkable (we're at " + this._playerPosition + ")");
 			}
 			else {
 				throw new InvalidStepException(step, "out of field");

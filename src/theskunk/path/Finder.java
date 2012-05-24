@@ -227,8 +227,18 @@ public class Finder extends GenericAStar<Environment> {
 	}
 	
 	protected int estimatedCost(Environment env, Point p) {
-		if (this._type == Type.FindGoal || this._type == Type.BombAway)
+		if (this._type == Type.FindGoal)
 			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
+		else if (this._type == Type.BombAway) {
+			// If the target could be bombed away by the skund width
+			// we've reached the goal
+			if (p.y == this._objY && Math.abs(p.x - this._objX) <= env.skunkWidth())
+				return 0;
+			else if (p.x == this._objX && Math.abs(p.y - this._objY) <= env.skunkWidth())
+				return 0;
+			
+			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
+		}
 		else if (this._type == Type.AvoidBomb) {
 			int estimatedCost = 0;
 			
@@ -272,15 +282,19 @@ public class Finder extends GenericAStar<Environment> {
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
 		Environment env = lastNode.nodeState;
+		List<Assertion> assertions = new ArrayList<Assertion>();
 		
 		if (this._type == Type.BombAway) {
 			env = new Environment(env, new LayBombStep());
 			
 			Finder f = new Finder(env, Type.AvoidBomb, env.playerPosition().x, env.playerPosition().y);
+			// Wait for it to explode
+			BombTileState bomb = (BombTileState)env.tileStateAt(env.playerPosition().x, env.playerPosition().y);
 			env = f.solution().finalState();
+			env = new Environment(env, new WaitStep(bomb.timeExploded() - env.currentTime()));
 		}
 		
-		return new Path(env.steps(), new ArrayList<Assertion>(), env, this._startPoint, env.playerPosition());
+		return new Path(env.steps(), assertions, env, this._startPoint, env.playerPosition());
 	}
 	
 	public int usedSteps() {

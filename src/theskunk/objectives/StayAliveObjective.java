@@ -32,7 +32,7 @@ public class StayAliveObjective implements Objective {
 		if (state.currentObjective != null) {
 			Path p = state.currentObjective.path();
 			if (state.stepIndex < p.steps().size()) {
-				remainingSteps = p.steps().subList(state.stepIndex, p.steps().size() - 1);
+				remainingSteps = p.steps().subList(state.stepIndex, p.steps().size());
 			}
 		}
 		
