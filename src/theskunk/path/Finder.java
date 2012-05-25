@@ -208,7 +208,12 @@ public class Finder extends GenericAStar<Environment> {
 				this._timeConsumedInSubFinders += finder._timeConsumed;
 
 				env = path.finalState();
-				assert path.finalPlayerPosition().equals(dest);
+				// Looks like there is no solution path here =S
+				// TODO: investigate this futhure. Was introduced
+				// with premature bombing detection.
+				if (!path.finalPlayerPosition().equals(dest)) {
+					return null;
+				}
 			}
 			
 			return new Node(env, sourceNode, dest, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
