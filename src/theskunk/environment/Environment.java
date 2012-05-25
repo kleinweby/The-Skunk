@@ -315,91 +315,114 @@ public class Environment {
 	
 	private void simulateEnvironment() {
 		HashSet<BombTileState> bombs;
+		HashSet<BombTileState> prematureBombs;
 		
 		// There is no parent state so we cannot simulate
 		if (this._parentState == null)
 			return;
 		
-		// Make a copy to safely modify the original
-		bombs = new HashSet<BombTileState>(this.bombTiles());
-		
-		for (BombTileState bomb : bombs) {
-			// This bomb exploded =/
-			if (bomb.timeExploded() <= this.currentTime()) {
-				Point p = bomb.coordinate();
-				
-				// Now let this thing explode
-				// First walk x upwards
-				for (int x = p.x; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
-					TileState state = this.tileStateAt(x, p.y);
+		do {
+			// Make a copy to safely modify the original
+			bombs = new HashSet<BombTileState>(this.bombTiles());
+			// Remember bombs that will be a secondary+ explosion
+			// from another bomb
+			prematureBombs = new HashSet<BombTileState>();
+			
+			for (BombTileState bomb : bombs) {
+				// This bomb exploded =/
+				if (bomb.timeExploded() <= this.currentTime() || prematureBombs.contains(bomb)) {
+					Point p = bomb.coordinate();
 					
-					if (this._playerPosition.equals(new Point(x, p.y)))
-						this._isPlayerAlive = false;
+					// Now let this thing explode
+					// First walk x upwards
+					for (int x = p.x; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
+						TileState state = this.tileStateAt(x, p.y);
+						
+						if (this._playerPosition.equals(new Point(x, p.y)))
+							this._isPlayerAlive = false;
+						
+						if (state.tileType() == TileState.BushTileType) {
+							this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
+							// Only bomb one tile away
+							break;
+						}
+						else if (bomb != state && state.tileType() == TileState.BombTileType) {
+							prematureBombs.add((BombTileState) state);
+							break;
+						}
+						else if (state.tileType() == TileState.StoneTileType) {
+							break;
+						}
+					}
 					
-					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
-						// Only bomb one tile away
-						break;
+					// walk x downwards
+					for (int x = p.x; x > 0 && x >= p.x - bomb.width(); x--) {
+						TileState state = this.tileStateAt(x, p.y);
+						
+						if (this._playerPosition.equals(new Point(x, p.y)))
+							this._isPlayerAlive = false;
+						
+						if (state.tileType() == TileState.BushTileType) {
+							this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
+							// Only bomb one tile away
+							break;
+						}
+						else if (bomb != state && state.tileType() == TileState.BombTileType) {
+							prematureBombs.add((BombTileState) state);
+							break;
+						}
+						else if (state.tileType() == TileState.StoneTileType) {
+							break;
+						}
 					}
-					else if (state.tileType() == TileState.StoneTileType) {
-						break;
+					
+					// walk y upwards
+					for (int y = p.y; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
+						TileState state = this.tileStateAt(p.x, y);
+						
+						if (this._playerPosition.equals(new Point(p.x, y)))
+							this._isPlayerAlive = false;
+						
+						if (state.tileType() == TileState.BushTileType) {
+							this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
+							// Only bomb one tile away
+							break;
+						}
+						else if (bomb != state && state.tileType() == TileState.BombTileType) {
+							prematureBombs.add((BombTileState) state);
+							break;
+						}
+						else if (state.tileType() == TileState.StoneTileType) {
+							break;
+						}
 					}
+					
+					// walk y downwards
+					for (int y = p.y; y > 0 && y >= p.y - bomb.width(); y--) {
+						TileState state = this.tileStateAt(p.x, y);
+						
+						if (this._playerPosition.equals(new Point(p.x, y)))
+							this._isPlayerAlive = false;
+						
+						if (state.tileType() == TileState.BushTileType) {
+							this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
+							// Only bomb one tile away
+							break;
+						}
+						else if (bomb != state && state.tileType() == TileState.BombTileType) {
+							prematureBombs.add((BombTileState) state);
+							break;
+						}
+						else if (state.tileType() == TileState.StoneTileType) {
+							break;
+						}
+					}
+					
+					// Remove the bomb
+					this.updateTileState(new TileState(TileState.FreeTileType, p));
+					prematureBombs.remove(bomb);
 				}
-				
-				// walk x downwards
-				for (int x = p.x; x > 0 && x >= p.x - bomb.width(); x--) {
-					TileState state = this.tileStateAt(x, p.y);
-					
-					if (this._playerPosition.equals(new Point(x, p.y)))
-						this._isPlayerAlive = false;
-					
-					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, new Point(x, p.y)));
-						// Only bomb one tile away
-						break;
-					}
-					else if (state.tileType() == TileState.StoneTileType) {
-						break;
-					}
-				}
-				
-				// walk y upwards
-				for (int y = p.y; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
-					TileState state = this.tileStateAt(p.x, y);
-					
-					if (this._playerPosition.equals(new Point(p.x, y)))
-						this._isPlayerAlive = false;
-					
-					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
-						// Only bomb one tile away
-						break;
-					}
-					else if (state.tileType() == TileState.StoneTileType) {
-						break;
-					}
-				}
-				
-				// walk y downwards
-				for (int y = p.y; y > 0 && y >= p.y - bomb.width(); y--) {
-					TileState state = this.tileStateAt(p.x, y);
-					
-					if (this._playerPosition.equals(new Point(p.x, y)))
-						this._isPlayerAlive = false;
-					
-					if (state.tileType() == TileState.BushTileType) {
-						this.updateTileState(new TileState(TileState.FreeTileType, new Point(p.x, y)));
-						// Only bomb one tile away
-						break;
-					}
-					else if (state.tileType() == TileState.StoneTileType) {
-						break;
-					}
-				}
-				
-				// Remove the bomb
-				this.updateTileState(new TileState(TileState.FreeTileType, p));
 			}
-		}
+		} while (!prematureBombs.isEmpty());
 	}
 }
