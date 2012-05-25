@@ -99,10 +99,6 @@ public class StayAliveObjective implements Objective {
 			if (!env.isPlayerAlive())
 				return true;
 			
-			if (!isBombThreatinging(env)) {
-				return false;
-			}
-			
 			try {
 				env = new Environment(env, step);
 			}
@@ -113,7 +109,7 @@ public class StayAliveObjective implements Objective {
 			}
 		}
 		
-		return isBombThreatinging(env);
+		return !env.isPlayerAlive() || isBombThreatinging(env);
 	}
 
 	@Override
