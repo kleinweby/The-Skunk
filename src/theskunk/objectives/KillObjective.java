@@ -66,6 +66,10 @@ public class KillObjective implements Objective {
 		ApoSkunkmanAIEnemy enemy = state.level.getEnemies()[0];
 		
 		for (ApoSkunkmanAIEnemy e : state.level.getEnemies()) {
+			// Skip dead enemies
+			if (!e.isVisible())
+				continue;
+			
 			// Found the one we're currently pursuing
 			if (e.getPlayer() == this._currentPursuingPlayer) {
 				enemy = e;
