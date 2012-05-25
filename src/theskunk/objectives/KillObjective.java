@@ -1,6 +1,8 @@
 package theskunk.objectives;
 
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.List;
 
 import theskunk.ExecutionState;
 import theskunk.environment.Environment;
@@ -8,6 +10,7 @@ import theskunk.path.Finder;
 import theskunk.path.Path;
 import theskunk.path.steps.Step;
 import theskunk.path.assertions.Assertion;
+import theskunk.path.assertions.EnemyAssertion;
 import apoSkunkman.ai.ApoSkunkmanAIConstants;
 import apoSkunkman.ai.ApoSkunkmanAIEnemy;
 
@@ -41,7 +44,10 @@ public class KillObjective implements Objective {
 					Finder finder = new Finder(env, 
 							Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
 					
-					this._path = finder.solution();
+					Path p = finder.solution();
+					List<Assertion> assertions = p.assertions();
+					assertions.add(new EnemyAssertion(enemy, new Point((int)enemy.getX(), (int)enemy.getY()), env.skunkWidth()));
+					this._path = new Path(p.steps(), assertions, p.finalState(), p.startPlayerPosition(), p.finalPlayerPosition());
 				}
 				else {
 					this._path = new Path(new ArrayList<Step>(), new ArrayList<Assertion>(), env, env.playerPosition(), env.playerPosition());
