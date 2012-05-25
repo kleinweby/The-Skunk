@@ -338,7 +338,8 @@ public class Environment {
 					for (int x = p.x; x < FIELD_WIDTH && x <= p.x + bomb.width(); x++) {
 						TileState state = this.tileStateAt(x, p.y);
 						
-						if (this._playerPosition.equals(new Point(x, p.y)))
+						if (this._parentState._playerPosition.equals(new Point(x, p.y)) ||
+								this._playerPosition.equals(new Point(x, p.y)))
 							this._isPlayerAlive = false;
 						
 						if (state.tileType() == TileState.BushTileType) {
@@ -359,7 +360,8 @@ public class Environment {
 					for (int x = p.x; x > 0 && x >= p.x - bomb.width(); x--) {
 						TileState state = this.tileStateAt(x, p.y);
 						
-						if (this._playerPosition.equals(new Point(x, p.y)))
+						if (this._parentState._playerPosition.equals(new Point(x, p.y)) ||
+								this._playerPosition.equals(new Point(x, p.y)))
 							this._isPlayerAlive = false;
 						
 						if (state.tileType() == TileState.BushTileType) {
@@ -380,7 +382,8 @@ public class Environment {
 					for (int y = p.y; y < FIELD_HEIGHT && y <= p.y + bomb.width(); y++) {
 						TileState state = this.tileStateAt(p.x, y);
 						
-						if (this._playerPosition.equals(new Point(p.x, y)))
+						if (this._parentState._playerPosition.equals(new Point(p.x, y)) ||
+								this._playerPosition.equals(new Point(p.x, y)))
 							this._isPlayerAlive = false;
 						
 						if (state.tileType() == TileState.BushTileType) {
@@ -401,7 +404,8 @@ public class Environment {
 					for (int y = p.y; y > 0 && y >= p.y - bomb.width(); y--) {
 						TileState state = this.tileStateAt(p.x, y);
 						
-						if (this._playerPosition.equals(new Point(p.x, y)))
+						if (this._parentState._playerPosition.equals(new Point(p.x, y)) ||
+								this._playerPosition.equals(new Point(p.x, y)))
 							this._isPlayerAlive = false;
 						
 						if (state.tileType() == TileState.BushTileType) {
