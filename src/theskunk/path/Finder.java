@@ -289,9 +289,9 @@ public class Finder extends GenericAStar<Environment> {
 			
 			Finder f = new Finder(env, Type.AvoidBomb, env.playerPosition().x, env.playerPosition().y);
 			// Wait for it to explode
-			BombTileState bomb = (BombTileState)env.tileStateAt(env.playerPosition().x, env.playerPosition().y);
+//			BombTileState bomb = (BombTileState)env.tileStateAt(env.playerPosition().x, env.playerPosition().y);
 			env = f.solution().finalState();
-			env = new Environment(env, new WaitStep(bomb.timeExploded() - env.currentTime()));
+//			env = new Environment(env, new WaitStep(bomb.timeExploded() - env.currentTime()));
 		}
 		
 		return new Path(env.steps(), assertions, env, this._startPoint, env.playerPosition());

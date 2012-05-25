@@ -1,16 +1,15 @@
 package theskunk.objectives;
 
-import java.util.List;
+import java.util.ArrayList;
 
-import apoSkunkman.ai.ApoSkunkmanAIConstants;
-import apoSkunkman.ai.ApoSkunkmanAIEnemy;
-import apoSkunkman.ai.ApoSkunkmanAILevel;
-import apoSkunkman.ai.ApoSkunkmanAIPlayer;
 import theskunk.ExecutionState;
 import theskunk.environment.Environment;
 import theskunk.path.Finder;
 import theskunk.path.Path;
+import theskunk.path.steps.Step;
 import theskunk.path.assertions.Assertion;
+import apoSkunkman.ai.ApoSkunkmanAIConstants;
+import apoSkunkman.ai.ApoSkunkmanAIEnemy;
 
 public class KillObjective implements Objective {
 	private boolean _isSatisfied;
@@ -38,10 +37,15 @@ public class KillObjective implements Objective {
 
 		if (enemy != null) {
 			if (this._path == null || !this._path.assertAgainstApo(state.level, state.player)) {
-				Finder finder = new Finder(env, 
-						Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
-				
-				this._path = finder.solution();
+				if (state.player.canPlayerLayDownSkunkman()) {
+					Finder finder = new Finder(env, 
+							Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
+					
+					this._path = finder.solution();
+				}
+				else {
+					this._path = new Path(new ArrayList<Step>(), new ArrayList<Assertion>(), env, env.playerPosition(), env.playerPosition());
+				}
 			}
 		}
 		else {

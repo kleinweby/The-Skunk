@@ -31,6 +31,7 @@ public class Environment {
 	protected int _maxSkunks;
 	protected int _currentTime;
 	protected Point _playerPosition;
+	protected int _playerId;
 	protected boolean _isPlayerAlive;
 	// Is true when it has become a parent
 	// this is mainly for assertion to avoid
@@ -62,6 +63,7 @@ public class Environment {
 					ApoSkunkmanAILevelSkunkman skunk = level.getSkunkman(p.y, p.x);
 					BombTileState bomb = new BombTileState(p, skunk.getSkunkWidth());
 					bomb.setTimeToLive(skunk.getTimeToExplosion());
+					bomb.setPlayerLayed(skunk.placedByPlayer());
 					tileState = bomb;
 					break;
 				case ApoSkunkmanAIConstants.LEVEL_BUSH:
@@ -85,6 +87,7 @@ public class Environment {
 		env.setMiliTimeForTile(player.getMSForOneTile());
 		env.setSkunkWidth(player.getSkunkWidth());
 		env.setPlayerPosition(new Point(player.getPlayerX(), player.getPlayerY()));
+		env._playerId = player.getPlayer();
 		
 		return env;
 	}
@@ -265,6 +268,8 @@ public class Environment {
 		if (state instanceof BombTileState) {
 			BombTileState bomb = (BombTileState)state;
 			bomb.setTimeLayed(this.currentTime());
+			if (bomb.playerLayed() < 0)
+				bomb.setPlayerLayed(this._playerId);
 			this._bombTiles.add(bomb);
 		}
 		
