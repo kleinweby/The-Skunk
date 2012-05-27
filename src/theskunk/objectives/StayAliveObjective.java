@@ -37,7 +37,7 @@ public class StayAliveObjective implements Objective {
 		}
 		
 		if (this.isThreatendAlongPath(env, remainingSteps)) {
-			Finder finder = new Finder(env, Type.AvoidBomb, 0, 0);
+			Finder finder = new Finder(env, Type.AvoidBomb, new Point(0, 0));
 			
 			this._isSatisfied = false;
 			this._path = finder.solution();
