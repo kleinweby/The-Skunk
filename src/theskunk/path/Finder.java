@@ -24,13 +24,13 @@ import theskunk.path.steps.MoveStep.Direction;
 public class Finder extends GenericAStar<Environment> {
 	public enum Type {
 		FindGoal,
-		AvoidBomb
+		AvoidBomb,
+		BombAway
 	}
 	
-	private int _objX;
-	private int _objY;
 	private Type _type;
 	private Point _startPoint;
+	private Point _objPoint;
 	private boolean _layBombs;
 	
 	private int _stepCount;
@@ -39,9 +39,8 @@ public class Finder extends GenericAStar<Environment> {
 	private long _timeConsumedInSubFinders;
 	private Environment _startEnv;
 	
-	public Finder(Environment env, Type type, int objX, int objY) {		
-		this._objX = objX;
-		this._objY = objY;
+	public Finder(Environment env, Type type, Point obj) {		
+		this._objPoint = new Point(obj);
 		this._type = type;
 		this._startPoint = env.playerPosition();
 		this._startEnv = env;
@@ -169,7 +168,7 @@ public class Finder extends GenericAStar<Environment> {
 			
 			// Find escape route
 			{	
-				Finder finder = new Finder(env, Type.AvoidBomb, 0,0);
+				Finder finder = new Finder(env, Type.AvoidBomb, new Point(0,0));
 				
 				// Solve the escape.
 				Path path = finder.solution();
@@ -196,7 +195,7 @@ public class Finder extends GenericAStar<Environment> {
 				assert !(env.tileStateAt(sourceNode.coordinate().x, sourceNode.coordinate().y) instanceof BombTileState);
 				
 				// Ok bomb is now exploded, get back to final destination
-				finder = new Finder(env, Type.FindGoal, dest.x, dest.y);
+				finder = new Finder(env, Type.FindGoal, dest);
 				// There is an free path, which is guranteed
 				// to be least expensive. So save the computing
 				// time and don't simulate bombs
@@ -207,7 +206,12 @@ public class Finder extends GenericAStar<Environment> {
 				this._timeConsumedInSubFinders += finder._timeConsumed;
 
 				env = path.finalState();
-				assert path.finalPlayerPosition().equals(dest);
+				// Looks like there is no solution path here =S
+				// TODO: investigate this futhure. Was introduced
+				// with premature bombing detection.
+				if (!path.finalPlayerPosition().equals(dest)) {
+					return null;
+				}
 			}
 			
 			return new Node(env, sourceNode, dest, env.currentTime() - srcEnv.currentTime() + env.miliTimeForTile(), 
@@ -227,7 +231,17 @@ public class Finder extends GenericAStar<Environment> {
 	
 	protected int estimatedCost(Environment env, Point p) {
 		if (this._type == Type.FindGoal)
-			return (Math.abs(this._objX-p.x) + Math.abs(this._objY-p.y)) * env.miliTimeForTile();
+			return (Math.abs(this._objPoint.x - p.x) + Math.abs(this._objPoint.y - p.y)) * env.miliTimeForTile();
+		else if (this._type == Type.BombAway) {
+			// If the target could be bombed away by the skund width
+			// we've reached the goal
+			if (p.y == this._objPoint.y && Math.abs(p.x - this._objPoint.x) <= env.skunkWidth())
+				return 0;
+			else if (p.x == this._objPoint.x && Math.abs(p.y - this._objPoint.y) <= env.skunkWidth())
+				return 0;
+			
+			return (Math.abs(this._objPoint.x-p.x) + Math.abs(this._objPoint.y-p.y)) * env.miliTimeForTile();
+		}
 		else if (this._type == Type.AvoidBomb) {
 			int estimatedCost = 0;
 			
@@ -270,8 +284,20 @@ public class Finder extends GenericAStar<Environment> {
 			return new Path(new ArrayList<Step>(), new ArrayList<Assertion>(), this._startEnv, this._startPoint, this._startPoint);
 		
 		Node lastNode = nodePath().get(nodePath.size() - 1);
+		Environment env = lastNode.nodeState;
+		List<Assertion> assertions = new ArrayList<Assertion>();
 		
-		return new Path(lastNode.nodeState().steps(), new ArrayList<Assertion>(), lastNode.nodeState, this._startPoint, lastNode.coordinate());
+		if (this._type == Type.BombAway) {
+			env = new Environment(env, new LayBombStep());
+			
+			Finder f = new Finder(env, Type.AvoidBomb, env.playerPosition());
+			// Wait for it to explode
+//			BombTileState bomb = (BombTileState)env.tileStateAt(env.playerPosition().x, env.playerPosition().y);
+			env = f.solution().finalState();
+//			env = new Environment(env, new WaitStep(bomb.timeExploded() - env.currentTime()));
+		}
+		
+		return new Path(env.steps(), assertions, env, this._startPoint, env.playerPosition());
 	}
 	
 	public int usedSteps() {

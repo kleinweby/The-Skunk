@@ -6,6 +6,7 @@ public class BombTileState extends TileState {
 	private int _width;
 	private int _timeLayed;
 	private int _timeToLive;
+	private int _playerLayed;
 	
 	static int TimeToLive = 2700; // TODO: what's the correct time?
 	
@@ -13,6 +14,7 @@ public class BombTileState extends TileState {
 		super(TileState.BombTileType, p);
 		this._width = width;
 		this._timeToLive = TimeToLive;
+		this._playerLayed = -1;
 	}
 
 	public int timeLayed() {
@@ -33,6 +35,14 @@ public class BombTileState extends TileState {
 	
 	public void setTimeToLive(int ttl) {
 		this._timeToLive = ttl;
+	}
+	
+	protected void setPlayerLayed(int player) {
+		this._playerLayed = player;
+	}
+	
+	public int playerLayed() {
+		return this._playerLayed;
 	}
 	
 	@Override

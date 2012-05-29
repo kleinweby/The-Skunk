@@ -32,12 +32,12 @@ public class StayAliveObjective implements Objective {
 		if (state.currentObjective != null) {
 			Path p = state.currentObjective.path();
 			if (state.stepIndex < p.steps().size()) {
-				remainingSteps = p.steps().subList(state.stepIndex, p.steps().size() - 1);
+				remainingSteps = p.steps().subList(state.stepIndex, p.steps().size());
 			}
 		}
 		
 		if (this.isThreatendAlongPath(env, remainingSteps)) {
-			Finder finder = new Finder(env, Type.AvoidBomb, 0, 0);
+			Finder finder = new Finder(env, Type.AvoidBomb, new Point(0, 0));
 			
 			this._isSatisfied = false;
 			this._path = finder.solution();
@@ -99,10 +99,6 @@ public class StayAliveObjective implements Objective {
 			if (!env.isPlayerAlive())
 				return true;
 			
-			if (!isBombThreatinging(env)) {
-				return false;
-			}
-			
 			try {
 				env = new Environment(env, step);
 			}
@@ -113,7 +109,7 @@ public class StayAliveObjective implements Objective {
 			}
 		}
 		
-		return isBombThreatinging(env);
+		return !env.isPlayerAlive() || isBombThreatinging(env);
 	}
 
 	@Override
