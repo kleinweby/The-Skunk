@@ -42,7 +42,7 @@ public class KillObjective implements Objective {
 			if (this._path == null || !this._path.assertAgainstApo(state.level, state.player)) {
 				if (state.player.canPlayerLayDownSkunkman()) {
 					Finder finder = new Finder(env, 
-							Finder.Type.BombAway, (int)enemy.getX(), (int)enemy.getY());
+							Finder.Type.BombAway, new Point((int)enemy.getX(), (int)enemy.getY()));
 					
 					Path p = finder.solution();
 					List<Assertion> assertions = p.assertions();

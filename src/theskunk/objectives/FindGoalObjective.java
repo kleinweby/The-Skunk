@@ -18,7 +18,7 @@ public class FindGoalObjective implements Objective {
 		}
 		else if (!(this._path != null && this._path.assertAgainstApo(state.level, state.player))){
 			Finder finder = new Finder(env, 
-					Finder.Type.FindGoal, state.level.getGoalXPoint().x, state.level.getGoalXPoint().y);
+					Finder.Type.FindGoal, state.level.getGoalXPoint());
 			
 			this._path = finder.solution();
 			this._isSatisfied = false;
